@@ -42,6 +42,13 @@ export default defineConfig({
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
     {
+      // Results, review and exports. Needs responses and a send history behind it.
+      name: "results",
+      testMatch: /results\.spec\.ts/,
+      dependencies: ["sending"],
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
+    {
       // Sending. Needs a drawn sample, so it runs last. It pauses and unpauses a study and
       // trips the circuit breaker, which is why nothing else may run beside it.
       name: "sending",

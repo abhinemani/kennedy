@@ -21,18 +21,60 @@ export function marginOfError(effectiveN: number): number | null {
   return effectiveN > 0 ? 1.96 * Math.sqrt(0.25 / effectiveN) * 100 : null;
 }
 
-export type Estimate = { estimate: number | null; n: number; effectiveN: number; moe: number | null };
+/**
+ * `moe` is a 95% margin of error, and `moeKind` says what its units are. The two travel
+ * together because they have to: a proportion's margin is in percentage points, a mean's is
+ * in whatever the mean measures, and rendering one as the other produces a number that is not
+ * wrong by a little.
+ */
+export type MoeKind = "absolute" | "percentage_points";
+export type Estimate = {
+  estimate: number | null;
+  n: number;
+  effectiveN: number;
+  moe: number | null;
+  moeKind: MoeKind;
+};
 
+/**
+ * The mean of a quantity, weighted.
+ *
+ * The margin of error comes from how much the values themselves vary, not from a proportion's
+ * worst case: "about 19 requests per 1,000 residents, give or take 2" is a statement about
+ * request volumes, and nothing about p = 0.5 has anything to say about it.
+ */
 export function weightedMean(rows: Weighted[]): Estimate {
-  const w = rows.map((r) => r.weight), sum = w.reduce((t, x) => t + x, 0);
+  const w = rows.map((r) => r.weight);
+  const sum = w.reduce((t, x) => t + x, 0);
   const effectiveN = kishEffectiveN(w);
-  return { estimate: sum === 0 ? null : rows.reduce((t, r) => t + r.value * r.weight, 0) / sum, n: rows.length, effectiveN, moe: marginOfError(effectiveN) };
+  if (sum === 0) return { estimate: null, n: rows.length, effectiveN, moe: null, moeKind: "absolute" };
+
+  const estimate = rows.reduce((t, r) => t + r.value * r.weight, 0) / sum;
+
+  // Variance of a weighted mean: the spread of the values, scaled by how unevenly the weights
+  // fall. One response cannot carry a margin of error, so that case reports none.
+  const sumSqWeights = w.reduce((t, x) => t + x * x, 0);
+  const variance = rows.reduce((t, r) => t + r.weight * (r.value - estimate) ** 2, 0) / sum;
+  const standardError = rows.length < 2 ? null : Math.sqrt((variance * sumSqWeights) / (sum * sum));
+
+  return {
+    estimate,
+    n: rows.length,
+    effectiveN,
+    moe: standardError === null ? null : 1.96 * standardError,
+    moeKind: "absolute",
+  };
 }
 
-/** Share of rows where `hit` is true, as a percentage. */
+/**
+ * Share of rows where `hit` is true, in percentage points.
+ *
+ * The margin is the conservative one (p = 0.5), which is never narrower than the truth. A
+ * tighter figure using the observed p would flatter a lopsided result.
+ */
 export function weightedShare(rows: { hit: boolean; weight: number }[]): Estimate {
-  const e = weightedMean(rows.map((r) => ({ value: r.hit ? 100 : 0, weight: r.weight })));
-  return e;
+  const mean = weightedMean(rows.map((r) => ({ value: r.hit ? 100 : 0, weight: r.weight })));
+  return { ...mean, moe: marginOfError(mean.effectiveN), moeKind: "percentage_points" };
 }
 
 export type EntityResponse = { responseId: string; entityId: string; role: string; completedAt: Date };

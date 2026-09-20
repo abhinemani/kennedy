@@ -77,6 +77,25 @@ export default async function StudyScreen({ params }: { params: Promise<{ slug: 
         </Link>
       </div>
 
+      <h2>Results</h2>
+      <div className="panel">
+        <p className="note" style={{ margin: "0 0 12px" }}>
+          The funnel, coverage and weights, weighted estimates with their margins, the review
+          queue, and every export including the generated methods note.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Link className="btn ghost" href={`/console/studies/${slug}/results`}>
+            Results
+          </Link>
+          <Link className="btn ghost" href={`/console/studies/${slug}/responses`}>
+            Review responses
+          </Link>
+          <Link className="btn ghost" href={`/console/studies/${slug}/exports`}>
+            Exports
+          </Link>
+        </div>
+      </div>
+
       <h2>Version history</h2>
       <div className="panel">
         {versions.length === 0 ? (
