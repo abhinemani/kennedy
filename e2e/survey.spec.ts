@@ -85,15 +85,18 @@ test("a person can answer the survey and is told where they stand", async ({ pag
 
   await page.getByRole("button", { name: "I process them myself" }).click();
 
-  // A wild number is questioned, not blocked, and the question can be corrected.
+  // A wild number is questioned, not blocked, and the question can be corrected. The wording
+  // of that question is the operator's to change, so this holds on to whatever it says — once
+  // that question is actually on screen.
+  await expect(page.getByRole("spinbutton")).toBeVisible();
+  const volumeAsked = (await page.locator(".q").first().textContent())?.trim() ?? "";
   await page.getByRole("spinbutton").fill("90000");
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.locator(".q").first()).toContainText("per 1,000 residents");
   await page.getByRole("button", { name: "Let me change it" }).click();
   await expect(page.getByRole("spinbutton")).toBeVisible();
-  await expect(page.locator(".q").first()).toContainText("About how many public records");
+  await expect(page.locator(".q").first()).toHaveText(volumeAsked);
 
-  const volumeAsked = (await page.locator(".q").first().textContent())?.trim() ?? "";
   await page.getByRole("spinbutton").fill("800");
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.locator(".q").first()).not.toHaveText(volumeAsked);

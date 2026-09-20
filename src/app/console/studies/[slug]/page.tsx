@@ -49,6 +49,12 @@ export default async function StudyScreen({ params }: { params: Promise<{ slug: 
         </p>
       ) : null}
 
+      <p className="note">
+        This is the Advanced view: the whole file at once. There is also a{" "}
+        <Link href={`/console/studies/${slug}/edit`}>form view</Link> for editing one field at a
+        time. Both read and write this same file.
+      </p>
+
       <Editor
         slug={slug}
         initialText={study.draftText}

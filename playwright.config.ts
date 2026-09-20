@@ -42,6 +42,14 @@ export default defineConfig({
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
     {
+      // The form editor. It writes the same file as the text view, so it runs last, after
+      // everything that depends on the study file being what it started as.
+      name: "edit",
+      testMatch: /edit\.spec\.ts/,
+      dependencies: ["interviews"],
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
+    {
       // The interview stage. Its conversation rules are unit-tested; this covers who is
       // offered one, and what the console says when it cannot run.
       name: "interviews",

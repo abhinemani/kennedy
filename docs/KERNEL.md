@@ -2,8 +2,9 @@
 
 `src/core` is framework-free TypeScript that encodes the product's rules. It is tested by
 `tests/kernel.test.ts`, `tests/modalities.test.ts`, `tests/health.test.ts`, and
-`tests/survey.test.ts`, `tests/import.test.ts`, `tests/draw.test.ts` and `tests/rate-limit.test.ts`
-(106 tests, all passing, type-check clean). Build routes, pages, and jobs
+`tests/survey.test.ts`, `tests/import.test.ts`, `tests/draw.test.ts`, `tests/rate-limit.test.ts`,
+`tests/analysis.test.ts`, `tests/coding.test.ts`, `tests/interview-flow.test.ts` and
+`tests/study-edit.test.ts` (217 tests, all passing, type-check clean). Build routes, pages, and jobs
 as thin layers over it.
 
 | File | What it does | Used by |
@@ -26,6 +27,11 @@ as thin layers over it.
 | `csv.ts` | Strict CSV reading and writing, column mapping profiles | Registry upload, contact import, exports |
 | `resolve.ts` | Normalising names, states and government types; matching a row to a government | Import, the needs-review queue |
 | `draw.ts` | The reproducible stratified draw, primary-role share, the pilot, and every skip reason | Sample screen, token minting |
+| `analysis.ts` | Weighted estimates per metric and per band, choice shares, coverage, one government one voice | Results screen, exports |
+| `methods.ts` | The generated methods note: frame, sample, weights, exclusions, coding agreement, and what a sample cannot say | Exports |
+| `coding.ts` | The coding prompt contract, output validation, the deterministic double-coded sample, agreement, theme counts | Themes screen |
+| `study-edit.ts` | Surgical edits to a study file: the form view writes the same text the Advanced view does, comments and layout intact | Form editor |
+| `deadline.ts` | A timeout a model client cannot overrun | Follow-up, coding, interview |
 
 `src/db/schema.ts` is the Drizzle schema for every table in the spec, plus `settings`,
 `activity_log`, `mapping_profiles`, and `import_rows` for the no-terminal requirements, and
@@ -34,9 +40,8 @@ as thin layers over it.
 
 ## Not in the kernel yet
 
-Theme-coding prompts, the SurveyMonkey adapter, the API send provider, and the methods-note
-generator. Add each to `src/core` with tests when its milestone comes up, in the same style:
-pure functions in, plain data out.
+The SurveyMonkey adapter and the API send provider. Add each to `src/core` with tests when its
+milestone comes up, in the same style: pure functions in, plain data out.
 
 ## A bug the kernel already caught
 
