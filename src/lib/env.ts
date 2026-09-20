@@ -7,6 +7,7 @@ export const env = {
   ipHashSalt: () => process.env.IP_HASH_SALT ?? null,
   anthropicKey: () => process.env.ANTHROPIC_API_KEY ?? null,
   anthropicModel: () => process.env.ANTHROPIC_MODEL ?? null,
+  sendWebhookSecret: () => process.env.SEND_WEBHOOK_SECRET ?? null,
 };
 
 export const PRODUCT_NAME = "Kennedy";

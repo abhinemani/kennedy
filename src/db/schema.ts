@@ -73,7 +73,11 @@ export const messages = pgTable("messages", {
   id: id(), studyContactId: uuid("study_contact_id").notNull().references(() => studyContacts.id), touch: integer("touch").notNull(),
   subjectVariant: integer("subject_variant").notNull().default(0), provider: text("provider").notNull(), providerMessageId: text("provider_message_id"),
   status: messageStatus("status").notNull().default("queued"), sentAt: timestamp("sent_at", { withTimezone: true }), ...stamps,
-}, (t) => ({ uniq: uniqueIndex("messages_uniq").on(t.studyContactId, t.touch) }));
+}, (t) => ({
+  uniq: uniqueIndex("messages_uniq").on(t.studyContactId, t.touch),
+  // A delivery report finds its message by this id, so two messages must never share one.
+  byProviderId: uniqueIndex("messages_provider_message_id_uniq").on(t.providerMessageId),
+}));
 
 export const linkEvents = pgTable("link_events", { // "loaded" is never counted as opened
   id: id(), studyContactId: uuid("study_contact_id").notNull().references(() => studyContacts.id),

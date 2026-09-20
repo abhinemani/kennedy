@@ -66,6 +66,17 @@ export default async function StudyScreen({ params }: { params: Promise<{ slug: 
         </Link>
       </div>
 
+      <h2>Follow-ups</h2>
+      <div className="panel">
+        <p className="note" style={{ margin: "0 0 12px" }}>
+          The email sequence, who is due each touch, and every reason somebody is left out.
+          Nothing is sent without you pressing the button on that screen.
+        </p>
+        <Link className="btn ghost" href={`/console/studies/${slug}/follow-ups`}>
+          Open the follow-ups screen
+        </Link>
+      </div>
+
       <h2>Version history</h2>
       <div className="panel">
         {versions.length === 0 ? (

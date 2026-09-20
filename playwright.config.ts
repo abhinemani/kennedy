@@ -41,6 +41,14 @@ export default defineConfig({
       dependencies: ["survey"],
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
+    {
+      // Sending. Needs a drawn sample, so it runs last. It pauses and unpauses a study and
+      // trips the circuit breaker, which is why nothing else may run beside it.
+      name: "sending",
+      testMatch: /sending\.spec\.ts/,
+      dependencies: ["contacts"],
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
   ],
   webServer: {
     command: "npm run start -- --port 3100",

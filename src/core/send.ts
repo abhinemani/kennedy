@@ -41,8 +41,20 @@ export function toCsv(messages: OutgoingMessage[]): string {
   return [head.join(","), ...messages.map((m) => [m.to, m.firstName, m.subject, m.body, String(m.touch), m.studyContactId].map(cell).join(","))].join("\r\n");
 }
 
-/** The default provider. Records what would be sent and sends nothing. */
+/**
+ * The default provider. Records what would be sent and sends nothing.
+ *
+ * Each instance gets its own prefix. A message id is how a delivery report finds the message
+ * it is about, so two batches numbering from zero would let one bounce mark several unrelated
+ * emails as bounced.
+ */
 export class DryRunProvider implements SendProvider {
-  name = "dryrun"; log: OutgoingMessage[] = [];
-  async enqueue(messages: OutgoingMessage[]) { this.log.push(...messages); return messages.map((m, i) => ({ studyContactId: m.studyContactId, providerMessageId: `dryrun-${this.log.length - messages.length + i}` })); }
+  name = "dryrun";
+  log: OutgoingMessage[] = [];
+  private readonly run = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  async enqueue(messages: OutgoingMessage[]) {
+    const from = this.log.length;
+    this.log.push(...messages);
+    return messages.map((m, i) => ({ studyContactId: m.studyContactId, providerMessageId: `dryrun-${this.run}-${from + i}` }));
+  }
 }

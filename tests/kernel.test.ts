@@ -183,3 +183,33 @@ describe("tokens and quality", () => {
     expect(qualityFlags({ durationSeconds: 40, medianDurationSeconds: 300, speederSeconds: 60, confirmedImplausible: false, otherCompletesFromEntity: 1, involvement: "process", correctedIdentity: false })).toEqual(["speeder", "duplicate_entity"]);
   });
 });
+
+describe("provider message ids", () => {
+  it("are never reused across batches, because a report finds its message by one", async () => {
+    const { DryRunProvider } = await import("../src/core/send");
+    const message = (id: string) => ({
+      studyContactId: id, to: `${id}@example.org`, firstName: "Sam",
+      subject: "Subject", body: "Body", touch: 1,
+    });
+
+    const first = new DryRunProvider();
+    const second = new DryRunProvider();
+    const a = await first.enqueue([message("a"), message("b")]);
+    const b = await first.enqueue([message("c")]);
+    const c = await second.enqueue([message("d"), message("e")]);
+
+    const ids = [...a, ...b, ...c].map((x) => x.providerMessageId);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("still answers with one id per message, in order", async () => {
+    const { DryRunProvider } = await import("../src/core/send");
+    const provider = new DryRunProvider();
+    const out = await provider.enqueue([
+      { studyContactId: "x", to: "x@example.org", firstName: "X", subject: "s", body: "b", touch: 1 },
+      { studyContactId: "y", to: "y@example.org", firstName: "Y", subject: "s", body: "b", touch: 1 },
+    ]);
+    expect(out.map((o) => o.studyContactId)).toEqual(["x", "y"]);
+    expect(provider.log).toHaveLength(2);
+  });
+});

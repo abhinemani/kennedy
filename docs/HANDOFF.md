@@ -1,6 +1,6 @@
 # Where the build stands
 
-Last updated after Milestone 1 (built last, after 2 and 3). Read this after `CLAUDE.md` and before picking anything up.
+Last updated after Milestone 4. Read this after `CLAUDE.md` and before picking anything up.
 `docs/BUILD_PLAN.md` is still the plan; this says which parts of it are real.
 
 ## Done
@@ -21,7 +21,11 @@ hand-raise capture with domain matching, and the panel invitation.
 preview, saved mapping profiles, the needs-review queue, the Lists screen, the Panel screen,
 and the reproducible stratified draw with token minting.
 
-106 unit tests and 34 end-to-end tests pass. Typecheck and build are clean.
+**Milestone 4.** The Follow-ups screen: who is due each touch and every reason the rest are
+not, the email preview, the dry-run and merge-file providers, the daily throttle, the pause
+switch, the circuit breaker, and the provider webhook that feeds suppression.
+
+108 unit tests and 48 end-to-end tests pass. Typecheck and build are clean.
 
 ## What Milestone 1 still needs from the operator
 
@@ -40,8 +44,7 @@ obviously fake government named `Test City (not a real government)`. It is how t
 walked on a phone without drawing anyone real.
 
 **Not built:** the AI follow-up (Milestone 5, and the "Test it" button on the checklist
-with it), sending and suppression beyond the unsubscribe path (Milestone 4), the console's
-analytics, review queue and exports (Milestone 6), open-text coding (7), the AI interview
+with it), the console's analytics, review queue and exports (Milestone 6), open-text coding (7), the AI interview
 stage (8), the form-based editor (9), the SurveyMonkey adapter (10), and the API send provider
 (11). "Download full backup" does not exist yet, and matters more than its milestone number
 suggests: Railway's Postgres has no point-in-time restore.
@@ -83,6 +86,21 @@ share a word become indistinguishable. Hints are siblings, tied on with `aria-de
 
 **The sign-in throttle counts failures, not attempts.** Counting every attempt locks out an
 operator who signs in from a second tab.
+
+**The circuit breaker is a latch, not a gate.** It trips when a provider reports a bounce or a
+complaint, writes its reason onto the study, and stays tripped until the operator resumes.
+Re-judging it on every page load, which is how it was first written, meant Resume did nothing:
+the same history blocked again immediately. The recent rates are shown beside the switch, so
+resuming past a hot one is an informed choice, and what was overridden goes in the activity log.
+
+**A delivery report finds its message by the provider's id**, and two messages must never share
+one. The dry-run provider used to number from zero on every batch, so one bounce could mark
+unrelated emails as bounced. Ids now carry a per-batch prefix and a unique index enforces it.
+The webhook also accepts a report keyed by `studyContactId` and `touch`, because an operator
+sending a merge file has no provider id to quote back — that is what the file carries.
+
+**`SEND_WEBHOOK_SECRET` guards the webhook.** It is the one route a third party posts to.
+Unset, it refuses everything, which is the right default.
 
 ## Running it locally
 

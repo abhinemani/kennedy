@@ -28,6 +28,7 @@ jobs:
       OPERATOR_PASSPHRASE: ci-only-passphrase
       SESSION_SECRET: ci-only-session-secret
       IP_HASH_SALT: ci-only-salt
+      SEND_WEBHOOK_SECRET: ci-only-webhook-secret
 
     steps:
       - uses: actions/checkout@v4
