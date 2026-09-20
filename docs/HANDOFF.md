@@ -73,7 +73,7 @@ marked records (`src/core/sample-data.ts` generates them from the study file, de
 `src/db/queries/sample-data.ts` writes and removes them), and "Remove sample data" deletes
 exactly those. It exists so every screen can be seen full before a real list is loaded.
 
-269 unit tests and 87 end-to-end tests pass, in CI as well as locally. Typecheck and build are clean.
+270 unit tests and 87 end-to-end tests pass, in CI as well as locally. Typecheck and build are clean.
 
 ## Not done
 
@@ -148,6 +148,13 @@ Without the role mapping every imported contact lands in "other".
 
 **Over a thousand township names repeat inside one state.** Entities carry their county, and the
 designator in a name ("City of Waukesha" against "Waukesha Village") breaks the remaining ties.
+
+**The session cookie is Secure only over https.** It is decided from the request, not from
+`NODE_ENV`: a production build also serves CI and a local `npm run start` over plain http, and
+WebKit on Linux drops a Secure cookie set over http, which signed the operator out on the very
+next request. That was why the console and survey specs failed on every CI run while passing on
+a Mac. When a CI run fails now, the `playwright-results` artifact on the run holds the page
+text, screenshot and trace Playwright kept.
 
 **Hints are not inside labels.** A hint nested in a `<label>` becomes part of the field's
 accessible name, so a screen reader says "Full name Optional."
