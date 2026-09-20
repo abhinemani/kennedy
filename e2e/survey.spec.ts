@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { walkSurvey } from "./walk";
 
 // The respondent flow, walked the way a person would, at 390px. It needs a database and a
 // study, so it builds one through the console first and skips itself when unconfigured.

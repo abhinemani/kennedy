@@ -42,6 +42,14 @@ export default defineConfig({
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
     {
+      // The interview stage. Its conversation rules are unit-tested; this covers who is
+      // offered one, and what the console says when it cannot run.
+      name: "interviews",
+      testMatch: /interviews\.spec\.ts/,
+      dependencies: ["themes"],
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
+    {
       // Coding written answers. Runs after results, which is where responses get reviewed.
       name: "themes",
       testMatch: /themes\.spec\.ts/,

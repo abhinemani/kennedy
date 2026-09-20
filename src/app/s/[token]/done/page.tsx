@@ -3,6 +3,7 @@ import Link from "next/link";
 import { afterSurvey } from "@/core/flow";
 import { computeBenchmark } from "@/core/benchmark";
 import { answersFor, linkFor, responseFor } from "@/db/queries/respondent";
+import { invitedCount } from "@/db/queries/interview";
 import { peersFor } from "@/lib/benchmark-data";
 import { backFromEnd, completeSurvey } from "../actions";
 import { Progress } from "../render";
@@ -41,10 +42,14 @@ export default async function Done({
   const headline = results.find((r) => r.headline)?.headline;
   const anyPeers = Object.values(peers?.byMetric ?? {}).some((v) => v.length > 0);
 
-  const steps = afterSurvey(study, given, linkScope(link.attributes), 0);
+  const invited = study.features.ai_interview
+    ? await invitedCount(link.studyId, study.stages.find((s) => s.type === "interview")?.id ?? "").catch(() => 0)
+    : 0;
+  const steps = afterSurvey(study, given, linkScope(link.attributes), invited);
   const handRaises = steps.filter((s) => s.kind === "hand_raise");
   const panel = steps.find((s) => s.kind === "panel");
   const live = steps.find((s) => s.kind === "live");
+  const interview = steps.find((s) => s.kind === "interview");
 
   const chartMetric = study.benchmark?.metrics.find((m) => m.chart === "strip");
   const chartResult = chartMetric ? results.find((r) => r.id === chartMetric.id) : undefined;
@@ -95,6 +100,18 @@ export default async function Done({
 
         {done ? (
           <>
+            {interview && interview.kind === "interview" ? (
+              <div className="panel" style={{ marginTop: 20, background: "var(--tint)", border: 0 }}>
+                <b style={{ fontWeight: 500 }}>{interview.label}</b>
+                <p className="note" style={{ margin: "4px 0 12px" }}>
+                  A conversation with an AI interviewer working from a researcher&rsquo;s guide,
+                  picking up from what you wrote. Skip anything, stop any time.
+                </p>
+                <Link className="btn ghost" href={`/s/${token}/interview`}>
+                  Start the conversation
+                </Link>
+              </div>
+            ) : null}
             {live ? (
               <div className="panel" style={{ marginTop: 20, background: "var(--tint)", border: 0 }}>
                 <b style={{ fontWeight: 500 }}>{live.label}</b>
