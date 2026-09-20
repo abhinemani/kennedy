@@ -71,8 +71,13 @@ export default async function Exports({ params }: { params: Promise<{ slug: stri
 
   return (
     <>
-      <h1>Exports</h1>
-      <p className="sub">Every export is a download.</p>
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Running it</span>
+          <h1>Exports</h1>
+          <p className="sub">Every export is a download.</p>
+        </div>
+      </div>
 
       <p className="ok-note">
         The default exports are anonymised. A respondent is a size band, a state, and a role.

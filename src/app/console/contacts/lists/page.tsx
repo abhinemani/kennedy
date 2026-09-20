@@ -56,12 +56,17 @@ export default async function Lists({
     <>
       <ContactsNav current="/console/contacts/lists" reviewCount={reviewCount} />
 
-      <h1>Lists</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Contacts</span>
+          <h1>Lists</h1>
+          <p className="sub">
         {contacts.length === 0
           ? "No contacts yet. Load the registry, then import a list."
           : `${contacts.length.toLocaleString("en-US")} contacts, ${suppressed.toLocaleString("en-US")} of them unsubscribed or suppressed.`}
       </p>
+        </div>
+      </div>
 
       {imported ? (
         <p className="ok-note" role="status">

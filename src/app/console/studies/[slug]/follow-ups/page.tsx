@@ -70,8 +70,11 @@ export default async function FollowUps({
 
   return (
     <>
-      <h1>Follow-ups</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Running it</span>
+          <h1>Follow-ups</h1>
+          <p className="sub">
         Every email is plain text with one survey link, a postal address, and an
         unsubscribe link. The provider is {settings.sendProvider === "dryrun"
           ? "dry run, so nothing leaves the system"
@@ -79,6 +82,8 @@ export default async function FollowUps({
             ? "a merge file you send yourself"
             : settings.sendProvider}.
       </p>
+        </div>
+      </div>
 
       {blocked.blocked ? (
         <p className="problem" role="alert">

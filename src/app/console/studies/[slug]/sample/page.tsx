@@ -53,12 +53,17 @@ export default async function Sample({ params }: { params: Promise<{ slug: strin
 
   return (
     <>
-      <h1>Sample</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Running it</span>
+          <h1>Sample</h1>
+          <p className="sub">
         {alreadyDrawn > 0
           ? `${alreadyDrawn.toLocaleString("en-US")} people have already been drawn into this study.`
           : "Nobody has been drawn into this study yet."}
       </p>
+        </div>
+      </div>
 
       {!plan ? (
         <p className="problem">

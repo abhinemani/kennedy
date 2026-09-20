@@ -4,6 +4,9 @@
 
 slug: brandeis-records-2026
 name: Public records workload, fall 2026
+question: >-
+  How much staff time do public records requests take in local government, what do offices
+  use to manage them, and what would it take for them to trust software with part of the work?
 wave: 1
 engine: native
 features:

@@ -39,11 +39,16 @@ export default async function Responses({
 
   return (
     <>
-      <h1>Responses</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Running it</span>
+          <h1>Responses</h1>
+          <p className="sub">
         {rows.length.toLocaleString("en-US")} completed. {flagged.length.toLocaleString("en-US")} carry a
         flag, {excluded.length.toLocaleString("en-US")} are excluded. Flagged ones are first.
       </p>
+        </div>
+      </div>
 
       <p className="ok-note">
         A flag is a thing worth looking at, not a verdict. Nothing is excluded unless you exclude

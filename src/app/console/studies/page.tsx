@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
-import { listStudies, responseCounts, versionsOf } from "@/db/queries/studies";
-import { STATUS_WORDS } from "./[slug]/words";
+import { listStudies } from "@/db/queries/studies";
+import { StudyCard, studyCardFacts } from "./card";
 
 export const dynamic = "force-dynamic";
-
-const n = (x: number) => x.toLocaleString("en-US");
 
 export default async function Studies() {
   if (!(await isSignedIn())) redirect("/console/login");
@@ -17,55 +15,62 @@ export default async function Studies() {
   } catch {
     studies = [];
   }
-
-  const rows = await Promise.all(
-    studies.map(async (s) => ({
-      study: s,
-      counts: await responseCounts(s.id).catch(() => ({ started: 0, complete: 0 })),
-      versions: await versionsOf(s.id).catch(() => []),
-    })),
-  );
+  const cards = await Promise.all(studies.map(studyCardFacts));
+  const running = cards.filter((c) => c.study.status === "fielding" || c.study.status === "pilot");
+  const rest = cards.filter((c) => !running.includes(c));
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+      <div className="page-head">
         <div>
+          <span className="eyebrow">Studies</span>
           <h1>Studies</h1>
-          <p className="sub">Each study is one question put to one audience.</p>
+          <p className="sub">Each study is one question put to one audience. The card says how far each has come.</p>
         </div>
-        <Link className="btn" href="/console/studies/new">
-          New study
-        </Link>
+        <div className="actions">
+          <Link className="btn" href="/console/studies/new">
+            New study
+          </Link>
+        </div>
       </div>
 
-      <div className="panel" style={{ marginTop: 16 }}>
-        {rows.length === 0 ? (
+      {cards.length === 0 ? (
+        <div className="card">
           <p className="note" style={{ margin: 0 }}>
-            No studies yet. Start one from a template.
+            No studies yet. <Link href="/console/studies/new">Write the first brief</Link>.
           </p>
-        ) : (
-          <ul className="index">
-            {rows.map(({ study, counts, versions }) => (
-              <li key={study.id}>
-                <Link className="primary" href={`/console/studies/${study.slug}`}>
-                  {study.name}
-                </Link>
-                <span className="meta">
-                  {versions.length > 0 ? `Version ${versions[0]?.version}` : "Never published"} ·{" "}
-                  {study.engine} engine · created{" "}
-                  {study.createdAt.toLocaleDateString("en-US", { dateStyle: "medium" })}
-                </span>
-                <span className="right">
-                  <span>
-                    {n(counts.complete)} complete of {n(counts.started)} started
-                  </span>
-                  <span className={`pill ${study.status}`}>{STATUS_WORDS[study.status] ?? study.status}</span>
-                </span>
-              </li>
+        </div>
+      ) : null}
+
+      {running.length > 0 ? (
+        <div className="section" style={{ marginTop: 0 }}>
+          <div className="section-head">
+            <div>
+              <h2>In the field</h2>
+            </div>
+          </div>
+          <div style={{ display: "grid", gap: 12 }}>
+            {running.map((c) => (
+              <StudyCard key={c.study.id} facts={c} />
             ))}
-          </ul>
-        )}
-      </div>
+          </div>
+        </div>
+      ) : null}
+
+      {rest.length > 0 ? (
+        <div className="section" style={{ marginTop: running.length > 0 ? 32 : 0 }}>
+          <div className="section-head">
+            <div>
+              <h2>{running.length > 0 ? "Drafts and closed studies" : "All studies"}</h2>
+            </div>
+          </div>
+          <div style={{ display: "grid", gap: 12 }}>
+            {rest.map((c) => (
+              <StudyCard key={c.study.id} facts={c} />
+            ))}
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

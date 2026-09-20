@@ -445,3 +445,107 @@ export function setSampleField(
   }
   return { ok: false, problem: `This file has no ${field} to change.` };
 }
+
+// ---------------------------------------------------------------- the brief
+
+/** The lines of one top-level field, including a block scalar's continuation lines. */
+function topLevelExtent(lines: string[], key: string): { start: number; end: number } | null {
+  const start = lines.findIndex((l) => l.startsWith(`${key}:`));
+  if (start === -1) return null;
+  return { start, end: fieldExtent(lines, { start, end: lines.length, indent: 0 }, start) };
+}
+
+/**
+ * Set a top-level string: the study's name, its slug, or its question. A missing question
+ * is added under the name, so a template without one can still be given one.
+ */
+export function setTopLevel(text: string, key: "name" | "slug" | "question", value: string): EditResult {
+  const unparsed = readable(text);
+  if (unparsed) return unparsed;
+
+  const clean = value.trim();
+  if (key !== "question" && clean === "") return { ok: false, problem: `A study needs a ${key}.` };
+  if (key === "slug" && !/^[a-z0-9-]+$/.test(clean)) {
+    return { ok: false, problem: "A slug is lowercase letters, numbers and dashes only." };
+  }
+  const lines = text.split("\n");
+  const found = topLevelExtent(lines, key);
+
+  if (!found) {
+    if (key !== "question") return { ok: false, problem: `This file has no ${key} to change.` };
+    if (clean === "") return { ok: true, text };
+    const name = topLevelExtent(lines, "name");
+    if (!name) return { ok: false, problem: "This file has no name line to add the question after." };
+    return { ok: true, text: splice(lines, name.end, name.end, render("question", clean, 0)) };
+  }
+  if (key === "question" && clean === "") return { ok: true, text: splice(lines, found.start, found.end, []) };
+  return { ok: true, text: splice(lines, found.start, found.end, render(key, clean, 0)) };
+}
+
+/** Who is asking, as the respondent will read it, or the neutral display name. */
+export function setBrandField(text: string, field: "display_name" | "sponsor_line", value: string): EditResult {
+  const unparsed = readable(text);
+  if (unparsed) return unparsed;
+  if (value.trim() === "") return { ok: false, problem: "That line cannot be empty: respondents read it." };
+
+  const lines = text.split("\n");
+  const brand = section(lines, "brand");
+  if (!brand) return { ok: false, problem: "This file has no brand section." };
+  const at = readField(lines, brand, field);
+  if (!at) return { ok: false, problem: `This file has no ${field} to change.` };
+  const end = fieldExtent(lines, brand, at.line);
+  return { ok: true, text: splice(lines, at.line, end, render(field, value.trim(), 2)) };
+}
+
+/**
+ * One of the depth switches: the smart survey, the AI interview, or the panel invitation.
+ * Turning the interview off also removes its stage, because the kernel refuses a file with a
+ * stage nobody can reach. Turning it on needs a guide, which only the whole-file view can add.
+ */
+export function setFeature(text: string, flag: "ai_followup" | "ai_interview" | "panel" | "hand_raise" | "benchmark", on: boolean): EditResult {
+  const unparsed = readable(text);
+  if (unparsed) return unparsed;
+
+  let lines = text.split("\n");
+  if (flag === "ai_interview") {
+    const stages = section(lines, "stages");
+    const interview = stages
+      ? listItems(lines, stages).find((item) => readField(lines, item, "type")?.value === "interview")
+      : undefined;
+    if (on && !interview) {
+      return { ok: false, problem: "This study has no interview guide to turn on. Add an interview stage in the whole file first." };
+    }
+    if (!on && interview) lines = splice(lines, interview.start, interview.end, []).split("\n");
+  }
+
+  const features = section(lines, "features");
+  if (!features) return { ok: false, problem: "This file has no features section." };
+  for (let i = features.start + 1; i < features.end; i += 1) {
+    const line = lines[i]!;
+    if (!line.trimStart().startsWith(`${flag}:`)) continue;
+    const comment = line.includes("#") ? `  ${line.slice(line.indexOf("#")).trimEnd()}` : "";
+    const pad = " ".repeat(INDENT(line));
+    return { ok: true, text: splice(lines, i, i + 1, [`${pad}${flag}: ${on}${comment}`]) };
+  }
+  return { ok: false, problem: `This file has no ${flag} switch.` };
+}
+
+/** Who the study asks, by role. The frame's roles line is rewritten in place. */
+export function setFrameRoles(text: string, roles: string[]): EditResult {
+  const unparsed = readable(text);
+  if (unparsed) return unparsed;
+  const clean = [...new Set(roles.map((r) => r.trim()).filter((r) => /^[a-z_]+$/.test(r)))];
+  if (clean.length === 0) return { ok: false, problem: "Pick at least one list to ask." };
+
+  const lines = text.split("\n");
+  const sample = section(lines, "sample");
+  if (!sample) return { ok: false, problem: "This file has no sample section." };
+  for (let i = sample.start + 1; i < sample.end; i += 1) {
+    const line = lines[i]!;
+    if (!/^\s+roles:\s*\[/.test(line)) continue;
+    const comment = line.includes("#") ? `  ${line.slice(line.indexOf("#")).trimEnd()}` : "";
+    const pad = " ".repeat(INDENT(line));
+    return { ok: true, text: splice(lines, i, i + 1, [`${pad}roles: [${clean.join(", ")}]${comment}`]) };
+  }
+  return { ok: false, problem: "This file has no roles line in its sample frame." };
+}

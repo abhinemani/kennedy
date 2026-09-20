@@ -2,10 +2,11 @@ import Link from "next/link";
 import { isSignedIn } from "@/lib/auth";
 import { PRODUCT_NAME, buildInfo } from "@/lib/env";
 import { needsReviewCount } from "@/db/queries/contacts";
-import { Rail } from "./rail";
+import { listStudies } from "@/db/queries/studies";
+import { Crumbs, Rail } from "./rail";
 
-// Signed in, the console is a workspace: a rail on the left and a wide column of content.
-// Signed out, there is only the gate.
+// Signed in, the console is a workspace: a rail on the left, a top bar with the breadcrumb,
+// and a wide column of content. Signed out, there is only the gate.
 export default async function ConsoleLayout({ children }: { children: React.ReactNode }) {
   if (!(await isSignedIn())) {
     return (
@@ -18,24 +19,41 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
     );
   }
 
-  const reviewCount = await needsReviewCount().catch(() => 0);
+  const [reviewCount, studies] = await Promise.all([
+    needsReviewCount().catch(() => 0),
+    listStudies().catch(() => []),
+  ]);
+  const names = Object.fromEntries(studies.map((s) => [s.slug, s.name]));
   const build = buildInfo();
 
   return (
     <div className="console">
       <aside className="rail">
-        <Link className="name" href="/console">
-          {PRODUCT_NAME}
-          <small>Research with local government</small>
+        <Link className="brand" href="/console">
+          <span className="mark" aria-hidden="true">
+            {PRODUCT_NAME.slice(0, 1)}
+          </span>
+          <span>
+            <b>{PRODUCT_NAME}</b>
+            <small>Research with local government</small>
+          </span>
         </Link>
         <Rail reviewCount={reviewCount} />
         <p className="foot">
           {build.commit ? `Build ${build.commit}` : "Local build"}
-          <br />
-          <Link href="/console/settings">Settings and sign out</Link>
+          {build.deployedAt ? `, ${new Date(build.deployedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}
         </p>
       </aside>
-      <main className="main">{children}</main>
+      <div style={{ minWidth: 0 }}>
+        <header className="topbar">
+          <Crumbs names={names} />
+          <span className="right">
+            <Link href="/console/studies/new">New study</Link>
+            <Link href="/console/settings">Settings</Link>
+          </span>
+        </header>
+        <main className="main">{children}</main>
+      </div>
     </div>
   );
 }

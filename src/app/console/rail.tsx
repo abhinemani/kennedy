@@ -21,6 +21,7 @@ export function Rail({ reviewCount }: { reviewCount: number }) {
 
   return (
     <nav aria-label="Console sections">
+      <span className="group">Workspace</span>
       {ITEMS.map(({ href, label, Icon, ...item }) => (
         <Link key={href} className="item" href={href} aria-current={isCurrent({ href, label, Icon, ...item }) ? "page" : undefined}>
           <span className="item-label">
@@ -34,6 +35,32 @@ export function Rail({ reviewCount }: { reviewCount: number }) {
           ) : null}
         </Link>
       ))}
+    </nav>
+  );
+}
+
+const WORDS: Record<string, string> = {
+  console: "Console", studies: "Studies", contacts: "Contacts", settings: "Settings", activity: "Activity",
+  new: "New study", brief: "Brief", findings: "Findings", leads: "Leads", report: "Report", edit: "Edit",
+  file: "Whole file", preview: "Preview", sample: "Sample", "follow-ups": "Follow-ups", results: "Results",
+  responses: "Responses", themes: "Themes", interviews: "Interviews", exports: "Exports", lists: "Lists",
+  registry: "Registry", import: "Import", review: "Needs review", panel: "Panel", login: "Sign in",
+};
+
+/** The path as words, with study slugs replaced by their names. */
+export function Crumbs({ names }: { names: Record<string, string> }) {
+  const path = usePathname();
+  const parts = path.split("/").filter(Boolean);
+  const crumbs = parts.map((part, i) => ({
+    href: `/${parts.slice(0, i + 1).join("/")}`,
+    label: names[part] ?? WORDS[part] ?? part,
+  }));
+  return (
+    <nav className="crumbs" aria-label="Where you are">
+      {crumbs.flatMap((c, i) => [
+        i > 0 ? <span className="sep" aria-hidden="true" key={`${c.href}-sep`}>/</span> : null,
+        i === crumbs.length - 1 ? <b key={c.href}>{c.label}</b> : <Link href={c.href} key={c.href}>{c.label}</Link>,
+      ])}
     </nav>
   );
 }

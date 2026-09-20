@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CalendarDays, CheckCircle2, Flag, Send } from "lucide-react";
 import { isSignedIn } from "@/lib/auth";
 import { parseStudy, readyToSend } from "@/core/study-schema";
+import { expectedCompletes, marginAt } from "@/core/plan";
 import { responseCounts, studyAndVersion, studyOf, versionsOf } from "@/db/queries/studies";
-import { reviewQueue } from "@/db/queries/analysis";
+import { reviewQueue, handRaiseRows } from "@/db/queries/analysis";
 import { pausedReason, touchesSoFar } from "@/db/queries/sending";
 import { readSettings } from "@/lib/settings";
 import { planTouch, whyBlocked, type TouchPlan } from "@/lib/sending";
@@ -39,18 +41,18 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
   const sendable = readyToSend(study.draftText);
   const base = `/console/studies/${slug}`;
 
-  const [versions, counts, settings, manual] = await Promise.all([
+  const [versions, counts, settings, manual, raises] = await Promise.all([
     versionsOf(study.id),
     responseCounts(study.id).catch(() => ({ started: 0, complete: 0 })),
     readSettings(),
     pausedReason(study.id).catch(() => null),
+    handRaiseRows(study.id).catch(() => []),
   ]);
 
   const a = spec ? await analyse(spec, study.id).catch(() => null) : null;
   const queue = await reviewQueue(study.id).catch(() => []);
   const flaggedPending = queue.filter((r) => r.qualityFlags.length > 0 && r.reviewStatus === "pending").length;
 
-  // Which touch is next, and whether anything stands in the way of sending it.
   const sent = await touchesSoFar(study.id).catch(() => []);
   const sentByTouch = new Map(sent.map((s) => [s.touch, s]));
   const nextTouchSpec = spec?.sequence.find((t) => !sentByTouch.has(t.touch)) ?? null;
@@ -60,25 +62,27 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
 
   const f = a?.funnel ?? { drawn: 0, emailed: 0, loaded: 0, started: 0, completed: 0, included: 0 };
   const excluded = (a?.rows.length ?? 0) - (a?.included.length ?? 0);
+  const expected = expectedCompletes(f.drawn);
+  const days = a?.fieldedFrom ? Math.max(1, Math.round((Date.now() - a.fieldedFrom.getTime()) / 86_400_000)) : null;
+  const margin = marginAt(f.included);
 
-  // One sentence and one button, chosen from where the study actually is.
   const next = (() => {
-    if (!parsed.ok) return { text: "The study file has problems. Nothing can run until they are fixed.", href: `${base}/file`, label: "Fix the file" };
-    if (!version) return { text: "Nothing is published yet. Publishing freezes the file as version 1, which every link and response then refers to.", href: `${base}/file`, label: "Publish version 1" };
-    if (!sendable) return { text: "The file still contains CHANGE_ME. Emails cannot go out until those are filled in.", href: `${base}/edit`, label: "Fill them in" };
-    if (f.drawn === 0) return { text: "Nobody has been drawn into this study. The sample screen shows every count before anything is drawn.", href: `${base}/sample`, label: "Draw the sample" };
-    if (study.status === "closed") return { text: "This study is closed. Its numbers, the review queue and the methods note are ready to export.", href: `${base}/exports`, label: "Exports" };
-    if (flaggedPending > 0) return { text: `${n(flaggedPending)} flagged ${flaggedPending === 1 ? "response is" : "responses are"} waiting for a decision. A flag is a thing to look at, not a verdict.`, href: `${base}/responses`, label: "Review them" };
+    if (!parsed.ok) return { k: "Blocked", text: "The study file has problems. Nothing can run until they are fixed.", href: `${base}/file`, label: "Fix the file" };
+    if (!version) return { k: "Next step", text: "Nothing is published yet. Publishing freezes the file as version 1, which every link and response then refers to.", href: `${base}/file`, label: "Publish version 1" };
+    if (!sendable) return { k: "Next step", text: "The file still contains CHANGE_ME. Emails cannot go out until those are filled in.", href: `${base}/edit`, label: "Fill them in" };
+    if (f.drawn === 0) return { k: "Next step", text: "Nobody has been drawn into this study. The sample screen shows every count before anything is drawn.", href: `${base}/sample`, label: "Draw the sample" };
+    if (study.status === "closed") return { k: "Closed", text: "This study is closed. Its findings, leads and report are ready.", href: `${base}/report`, label: "The report" };
+    if (flaggedPending > 0) return { k: "Waiting on you", text: `${n(flaggedPending)} flagged ${flaggedPending === 1 ? "response is" : "responses are"} waiting for a decision. A flag is a thing to look at, not a verdict.`, href: `${base}/responses`, label: "Review them" };
     if (nextTouchSpec && nextPlan) {
-      if (blocked?.blocked) return { text: `Touch ${nextTouchSpec.touch} is due, but sending is blocked: ${blocked.reason}`, href: `${base}/follow-ups`, label: "Follow-ups" };
-      return { text: `Touch ${nextTouchSpec.touch}, day ${nextTouchSpec.day}, would go to ${n(nextPlan.result.send.length)} people. Nothing is sent until you press the button on that screen.`, href: `${base}/follow-ups`, label: "Follow-ups" };
+      if (blocked?.blocked) return { k: "Blocked", text: `Touch ${nextTouchSpec.touch} is due, but sending is blocked: ${blocked.reason}`, href: `${base}/follow-ups`, label: "Follow-ups" };
+      return { k: "Next step", text: `Touch ${nextTouchSpec.touch}, day ${nextTouchSpec.day}, would go to ${n(nextPlan.result.send.length)} people. Nothing is sent until you press the button on that screen.`, href: `${base}/follow-ups`, label: "Follow-ups" };
     }
-    return { text: "Every touch has gone out. Watch responses come in, then close the study when fielding ends.", href: `${base}/results`, label: "Results" };
+    return { k: "In the field", text: "Every touch has gone out. Watch the findings fill in, then close the study when fielding ends.", href: `${base}/findings`, label: "Findings" };
   })();
 
   return (
     <>
-      <p className="sub" style={{ marginTop: -6 }}>
+      <p className="sub" style={{ margin: "-6px 0 16px" }}>
         {STATUS_WORDS[study.status] ?? study.status}
         {version ? ` · published version ${version.version}` : " · never published"}
         {` · ${n(counts.complete)} complete of ${n(counts.started)} started`}
@@ -86,67 +90,96 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
       </p>
 
       <div className="next">
-        <span>{next.text}</span>
+        <span>
+          <span className="k">{next.k}</span>
+          {next.text}
+        </span>
         <Link className="btn" href={next.href}>
           {next.label}
         </Link>
       </div>
 
       <div className="stats">
-        <div className="stat">
+        <div className="stat good">
+          <span className="k">
+            Completed <CheckCircle2 size={15} aria-hidden="true" />
+          </span>
           <span className="n">
             {n(f.completed)}
             <small>of {n(f.drawn)} drawn</small>
           </span>
-          <span className="l">Completed</span>
-        </div>
-        <div className="stat">
-          <span className="n">{pct(f.completed, f.drawn)}</span>
-          <span className="l">Response rate, against everyone drawn</span>
+          <span className="l">
+            {f.drawn > 0 ? <>About <b>{n(expected)}</b> expected from this sample · {pct(f.completed, f.drawn)} so far</> : "Nothing drawn yet"}
+          </span>
         </div>
         <div className={flaggedPending > 0 ? "stat warn" : "stat"}>
+          <span className="k">
+            In the analysis <Flag size={15} aria-hidden="true" />
+          </span>
           <span className="n">
             {n(f.included)}
             {excluded > 0 ? <small>{n(excluded)} excluded</small> : null}
           </span>
           <span className="l">
-            In the analysis{flaggedPending > 0 ? <>, <b>{n(flaggedPending)} flagged to review</b></> : ""}
+            {margin !== null ? <>About ±{margin} points on a share</> : "No margin yet"}
+            {flaggedPending > 0 ? <>, <b>{n(flaggedPending)} flagged to review</b></> : ""}
           </span>
         </div>
         <div className={blocked?.blocked ? "stat warn" : "stat"}>
+          <span className="k">
+            Next email <Send size={15} aria-hidden="true" />
+          </span>
           <span className="n">
             {nextTouchSpec ? `Touch ${nextTouchSpec.touch}` : sent.length > 0 ? "Sent" : "—"}
             {nextPlan ? <small>{n(nextPlan.result.send.length)} due</small> : null}
           </span>
           <span className="l">
-            {!spec
-              ? "No sequence to read"
-              : blocked?.blocked
-                ? <b>Sending is blocked</b>
-                : nextTouchSpec
-                  ? `Next email, day ${nextTouchSpec.day}`
-                  : "Every touch has gone out"}
+            {!spec ? "No sequence to read" : blocked?.blocked ? <b>Sending is blocked</b> : nextTouchSpec ? `Day ${nextTouchSpec.day} of the sequence` : "Every touch has gone out"}
+          </span>
+        </div>
+        <div className="stat">
+          <span className="k">
+            In the field <CalendarDays size={15} aria-hidden="true" />
+          </span>
+          <span className="n">
+            {days !== null ? n(days) : "—"}
+            {days !== null ? <small>{days === 1 ? "day" : "days"}</small> : null}
+          </span>
+          <span className="l">
+            {raises.length > 0 ? <><b>{n(raises.length)}</b> raised a hand so far</> : "Nobody has raised a hand yet"}
           </span>
         </div>
       </div>
 
       {a ? (
-        <div className="cols" style={{ marginTop: 18 }}>
-          <div className="panel">
-            <span className="label">Where the sample stands</span>
+        <div className="cols" style={{ marginTop: 16 }}>
+          <div className="card">
+            <div className="card-head">
+              <div>
+                <h3>Where the sample stands</h3>
+                <p>From people drawn to answers in the analysis.</p>
+              </div>
+              <Link className="btn ghost small" href={`${base}/results`}>
+                Full results
+              </Link>
+            </div>
             <Funnel f={f} />
-            <p className="note">
-              A loaded link is not an opened one: mail gateways fetch every link. Only pressing
-              Start counts as a person. <Link href={`${base}/results`}>Full results</Link>
+            <p className="card-foot">
+              A loaded link is not an opened one: mail gateways fetch every link. Only pressing Start counts as a person.
             </p>
           </div>
 
-          <div className="panel scroll">
-            <span className="label">Coverage by population band</span>
+          <div className="card scroll">
+            <div className="card-head">
+              <div>
+                <h3>Coverage by size</h3>
+                <p>Who has answered, and how much each answer counts.</p>
+              </div>
+            </div>
             <table>
               <thead>
                 <tr>
-                  <th>Band</th>
+                  <th style={{ textAlign: "left" }}>Band</th>
                   <th>Answered</th>
                   <th>Rate</th>
                   <th>Weight</th>
@@ -155,7 +188,7 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
               <tbody>
                 {a.coverage.map((c) => (
                   <tr key={c.key}>
-                    <td>{c.label}</td>
+                    <td style={{ textAlign: "left" }}>{c.label}</td>
                     <td>{n(c.responses)}</td>
                     <td>{c.responseRate === null ? "—" : `${Math.round(c.responseRate * 100)}%`}</td>
                     <td className={c.under ? "low" : undefined}>
@@ -165,14 +198,13 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
                 ))}
               </tbody>
             </table>
-            <p className="note">
-              A weight above one means that band answered less than its share, so each answer
-              counts for more. The cap is {spec?.quality.weight_cap}.
+            <p className="card-foot">
+              A weight above one means that band answered less than its share, so each answer counts for more. The cap is {spec?.quality.weight_cap}.
             </p>
           </div>
         </div>
       ) : (
-        <p className="problem" style={{ marginTop: 18 }}>
+        <p className="problem" style={{ marginTop: 16 }}>
           {parsed.ok
             ? "The numbers could not be read. Check the first line of the setup checklist."
             : "The study file has problems, so its numbers cannot be read yet."}{" "}
@@ -180,13 +212,20 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
         </p>
       )}
 
-      <div className="two" style={{ marginTop: 18 }}>
-        <div className="panel">
-          <span className="label">Versions</span>
+      <div className="two" style={{ marginTop: 16 }}>
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h3>Versions</h3>
+              <p>Publishing freezes the file. Every response records the version it answered.</p>
+            </div>
+            <Link className="btn ghost small" href={`${base}/file`}>
+              The whole file
+            </Link>
+          </div>
           {versions.length === 0 ? (
             <p className="note" style={{ margin: 0 }}>
-              Never published. Publishing freezes the file as a version, and every response
-              records which version it answered. <Link href={`${base}/file`}>Publish</Link>
+              Never published.
             </p>
           ) : (
             <ul className="rows">
@@ -194,7 +233,7 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
                 <li key={v.id}>
                   <span>
                     Version {v.version}
-                    {v.version === version?.version ? <span className="state"> — live</span> : null}
+                    {v.version === version?.version ? <span className="pill fielding" style={{ marginLeft: 8 }}>live</span> : null}
                   </span>
                   <span className="when">
                     {v.publishedAt.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
@@ -205,12 +244,13 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
           )}
         </div>
 
-        <div className="panel">
-          <span className="label">Status</span>
-          <p className="note" style={{ margin: "0 0 12px" }}>
-            Closing a study makes every link say so kindly rather than breaking. Nothing here
-            sends anything.
-          </p>
+        <div className="card">
+          <div className="card-head">
+            <div>
+              <h3>Status</h3>
+              <p>Closing a study makes every link say so kindly rather than breaking. Nothing here sends anything.</p>
+            </div>
+          </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <StatusButtons slug={slug} current={study.status} />
           </div>
@@ -222,7 +262,6 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
 
 function Funnel({ f }: { f: { drawn: number; emailed: number; loaded: number; started: number; completed: number; included: number } }) {
   const widest = Math.max(f.drawn, 1);
-  const bar = (x: number) => `${Math.max(2, Math.round((x / widest) * 100))}%`;
   const steps: [string, number][] = [
     ["Drawn", f.drawn],
     ["Emailed", f.emailed],
@@ -232,15 +271,17 @@ function Funnel({ f }: { f: { drawn: number; emailed: number; loaded: number; st
     ["In the analysis", f.included],
   ];
   return (
-    <ul className="funnel">
+    <div className="bars">
       {steps.map(([label, value]) => (
-        <li key={label}>
-          <span>{label}</span>
-          <span className="bar" style={{ width: bar(value) }} />
-          <span className="n">{n(value)}</span>
-        </li>
+        <div className="row" key={label}>
+          <span className="lab">{label}</span>
+          <span className="track">
+            <span className={label === "Link loaded" || label === "Emailed" || label === "Drawn" ? "fill peer" : "fill"} style={{ width: `${Math.max(1, Math.round((value / widest) * 100))}%` }} />
+          </span>
+          <span className="val">{n(value)}</span>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -258,7 +299,7 @@ function StatusButtons({ slug, current }: { slug: string; current: string }) {
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="status" value={o.value} />
           <button className="btn ghost" type="submit" disabled={current === o.value} aria-current={current === o.value}>
-            {o.label}
+            {STATUS_WORDS[o.value] ?? o.label}
           </button>
         </form>
       ))}

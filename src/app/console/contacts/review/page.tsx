@@ -40,12 +40,17 @@ export default async function Review() {
     <>
       <ContactsNav current="/console/contacts/review" reviewCount={total} />
 
-      <h1>Needs review</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Contacts</span>
+          <h1>Needs review</h1>
+          <p className="sub">
         {total === 0
           ? "Nothing waiting. Rows that cannot be matched during an import land here."
           : `${total.toLocaleString("en-US")} rows could not be matched to a government. Match one by clicking, or skip it.`}
       </p>
+        </div>
+      </div>
 
       {withCandidates.map(({ row, candidates }) => (
         <ReviewRow key={row.id} row={row} candidates={candidates} />

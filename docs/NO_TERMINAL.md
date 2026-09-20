@@ -42,7 +42,11 @@ The same checklist lives permanently at Settings, Health.
 | Import a contact list | Contacts, Import. Pick or create a column-matching profile by clicking, preview 20 rows, see how many are new, duplicate, or unresolved |
 | Fix unresolved rows | Contacts, Needs review. Search the registry and click to match, or skip |
 | See your lists | Contacts, Lists. One card per Power Almanac list, then other sources, with counts and where each came from |
-| Create a study | Studies, "New study": pick lists, pick how people can answer, then a template or a copy of an existing study |
+| Create a study | Studies, "New study": write the brief. The question, who is asking, which lists to ask, how deep to go, and what that should yield, then "Create the study". Or "Use this template" for the file as it is |
+| See what a study is for | Study, Brief. The question, who is asking, who is asked, how deep, and every survey question with what it proves |
+| See what a study found | Study, Findings. Headline numbers with margins, what people chose, themes with quotes |
+| See who wants to talk | Study, Leads. Hand-raises by type, verified or not, and who joined the panel |
+| Take the results into a meeting | Study, Report. A print-ready document with the methods note; "Print or save as PDF" |
 | Turn the AI interview on or off | The "How can they answer?" switches, or the study editor |
 | Read interviews | Study, Interviews. Transcripts without names, with themes beside them |
 | See the panel | Contacts, Panel. Who joined, through which study, and when |

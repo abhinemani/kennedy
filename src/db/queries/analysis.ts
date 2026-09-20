@@ -200,3 +200,47 @@ export async function handRaiseRows(studyId: string) {
     fullName: r.full_name ? String(r.full_name) : null,
   }));
 }
+
+export type QuoteRow = {
+  id: string;
+  questionId: string;
+  text: string;
+  stratumKey: string;
+  role: string;
+  state: string;
+  quotePermission: boolean;
+  themeCode: string | null;
+  themeLabel: string | null;
+};
+
+/**
+ * Written answers for the findings, with the theme the operator confirmed and just enough
+ * about the writer to attribute a quote the way the study promised: role and size always,
+ * the state only when they said their words could carry their title and state.
+ */
+export async function quotesFor(studyId: string): Promise<QuoteRow[]> {
+  const rows = await db().execute<Record<string, unknown>>(sql`
+    select ft.id, ft.question_id, ft.text, sc.stratum_key, c.role::text as role, e.state,
+           r.quote_permission, t.code as theme_code, t.label as theme_label
+      from free_text ft
+      join responses r on r.id = ft.response_id
+      join study_contacts sc on sc.id = r.study_contact_id
+      join contacts c on c.id = sc.contact_id
+      join entities e on e.id = c.entity_id
+      left join text_codes tc on tc.free_text_id = ft.id and not tc.is_second_pass and tc.coder = 'human'
+      left join codebook_themes t on t.id = tc.theme_id
+     where sc.study_id = ${studyId} and r.status = 'complete' and r.review_status <> 'excluded'
+     order by ft.created_at desc
+  `);
+  return (rows as unknown as Record<string, unknown>[]).map((r) => ({
+    id: String(r.id),
+    questionId: String(r.question_id),
+    text: String(r.text),
+    stratumKey: String(r.stratum_key),
+    role: String(r.role),
+    state: String(r.state),
+    quotePermission: Boolean(r.quote_permission),
+    themeCode: r.theme_code ? String(r.theme_code) : null,
+    themeLabel: r.theme_label ? String(r.theme_label) : null,
+  }));
+}
