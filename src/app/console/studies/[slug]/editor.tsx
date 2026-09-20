@@ -36,17 +36,17 @@ export function Editor({
         <input type="hidden" name="text" value={text} />
         <label className="field" htmlFor="study-text">
           The study file
-          <span className="hint">
-            Everything about this study lives here: the questions, who is asked, the emails, and the
-            benchmark.
-          </span>
         </label>
+        <p className="hint field-hint" id="study-text-hint">
+          Everything about this study lives here: the questions, who is asked, the emails, and the
+          benchmark.
+        </p>
         <textarea
           id="study-text"
           value={text}
           spellCheck={false}
           onChange={(e) => setText(e.target.value)}
-          aria-describedby="study-problems"
+          aria-describedby="study-text-hint study-problems"
         />
         <div className="nav">
           <button className="btn ghost" type="submit" disabled={saving || !dirty}>

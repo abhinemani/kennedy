@@ -34,6 +34,13 @@ export default defineConfig({
       testMatch: /survey\.spec\.ts/,
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
+    {
+      // Registry, import and the draw. Runs after the survey project, which creates the study.
+      name: "contacts",
+      testMatch: /contacts\.spec\.ts/,
+      dependencies: ["survey"],
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
   ],
   webServer: {
     command: "npm run start -- --port 3100",

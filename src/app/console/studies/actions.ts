@@ -9,6 +9,7 @@ import { record } from "@/lib/activity";
 import { parseStudy } from "@/core/study-schema";
 import { createStudy, publish, saveDraft, setStatus, studyBySlug } from "@/db/queries/studies";
 import { createTestLink } from "@/db/queries/test-link";
+import { commitSample, planSample } from "@/db/queries/sample";
 
 async function requireOperator() {
   if (!(await isSignedIn())) redirect("/console/login");
@@ -105,4 +106,31 @@ export async function changeStatus(formData: FormData): Promise<void> {
   await record("study_status_changed", { slug, status });
   revalidatePath(`/console/studies/${slug}`);
   redirect(`/console/studies/${slug}`);
+}
+
+/** Draws the sample the operator has just been shown, and mints one link per person. */
+export async function drawSampleNow(_prev: string | null, formData: FormData): Promise<string | null> {
+  await requireOperator();
+  const slug = String(formData.get("slug") ?? "");
+
+  const study = await studyBySlug(slug);
+  if (!study) return "That study no longer exists.";
+
+  const parsed = parseStudy(study.draftText);
+  if (!parsed.ok) return "Fix the problems in the study file before drawing a sample.";
+
+  try {
+    const plan = await planSample(parsed.study, ["owner_only", "client_ok"]);
+    const outcome = await commitSample(study.id, parsed.study, plan);
+    await record("sample_drawn", { slug, minted: outcome.minted, seed: parsed.study.sample.seed });
+    revalidatePath(`/console/studies/${slug}/sample`);
+    revalidatePath(`/console/studies/${slug}`);
+
+    if (outcome.minted === 0) {
+      return "Nothing new to draw. Everyone this seed would pick is already in the study.";
+    }
+    return `Drew ${outcome.minted.toLocaleString("en-US")} people and made a link for each. Nothing has been sent.`;
+  } catch {
+    return "Could not draw the sample. Nothing was changed. Check the first line of the setup checklist.";
+  }
 }

@@ -1,6 +1,6 @@
 # Where the build stands
 
-Last updated after Milestone 3. Read this after `CLAUDE.md` and before picking anything up.
+Last updated after Milestone 1 (built last, after 2 and 3). Read this after `CLAUDE.md` and before picking anything up.
 `docs/BUILD_PLAN.md` is still the plan; this says which parts of it are real.
 
 ## Done
@@ -17,26 +17,29 @@ respondent flow: intro, one question per screen, branching, plausibility prompts
 **Milestone 3.** The benchmark page, the strip plot, the end screen driven by `afterSurvey`,
 hand-raise capture with domain matching, and the panel invitation.
 
-61 unit tests and 24 end-to-end tests pass. Typecheck and build are clean.
+**Milestone 1.** Registry upload, contact import with click-to-match column profiles and a
+preview, saved mapping profiles, the needs-review queue, the Lists screen, the Panel screen,
+and the reproducible stratified draw with token minting.
 
-## Not done, and where it bites
+106 unit tests and 34 end-to-end tests pass. Typecheck and build are clean.
 
-**Milestone 1 is skipped.** There is no registry, no contact import, no needs-review queue, no
-audience screen, and no stratified draw. Nothing can be sent to a real person until it exists,
-because there are no real contacts to send to. It is the next thing to build.
+## What Milestone 1 still needs from the operator
 
-In its place, the study screen has **"Create a rehearsal link"**, which makes a token pointed at
-an obviously fake government named `Test City (not a real government)`. That is how the survey
-gets walked today. It is not a substitute for the draw.
+The screens are built and tested against obviously fake fixtures. Two things from section 14 of
+the spec are still needed before a real import:
 
-**Two open items still block Milestone 1**, both from section 14 of the spec:
-
-1. A real Power Almanac export header, so the `power-almanac` column-mapping profile can be
-   built rather than guessed.
-2. The registry seed file — Census government units joined to population. Population is not
+1. **A real Power Almanac export header.** The mapping is click-to-match, so nothing is
+   guessed, but the `power-almanac` profile ships empty until a real header is seen. Paste the
+   first line of an export and it becomes a saved profile.
+2. **The registry file.** Census government units joined to population. Population is not
    optional: the strata are population bands, so a government without one cannot be sampled.
+   The expected columns are listed on the Registry screen itself.
 
-**Also not built:** the AI follow-up (Milestone 5, and the "Test it" button on the checklist
+The study screen also still has **"Create a rehearsal link"**, which makes a token pointed at an
+obviously fake government named `Test City (not a real government)`. It is how the survey gets
+walked on a phone without drawing anyone real.
+
+**Not built:** the AI follow-up (Milestone 5, and the "Test it" button on the checklist
 with it), sending and suppression beyond the unsubscribe path (Milestone 4), the console's
 analytics, review queue and exports (Milestone 6), open-text coding (7), the AI interview
 stage (8), the form-based editor (9), the SurveyMonkey adapter (10), and the API send provider
@@ -62,7 +65,24 @@ serially with one worker. Do not re-enable `fullyParallel` without giving each s
 data.
 
 **The database-backed specs skip themselves** when `DATABASE_URL` is unset. A green run that
-skipped them proves nothing; check that the `console` and `survey` projects actually ran.
+skipped them proves nothing; check that the `console`, `survey` and `contacts` projects
+actually ran.
+
+**Staged imports hold real names and emails.** A previewed import lives in `import_rows` until
+it is committed or discarded. Discarding removes it at once, and anything still pending after a
+day is swept when the Import screen is opened, because closing the tab is the common case and
+no button can catch it.
+
+**The draw sorts its stratum keys** so the same seed always produces the same sample. Screens
+that show strata re-sort them into the study file's band order, because alphabetical keys put
+"Under 10,000" last.
+
+**Hints are not inside labels.** A hint nested in a `<label>` becomes part of the field's
+accessible name, so a screen reader announces "Full name Optional." and two fields whose hints
+share a word become indistinguishable. Hints are siblings, tied on with `aria-describedby`.
+
+**The sign-in throttle counts failures, not attempts.** Counting every attempt locks out an
+operator who signs in from a second tab.
 
 ## Running it locally
 

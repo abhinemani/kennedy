@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { isSignedIn, passphraseMatches, signIn, signOut } from "@/lib/auth";
-import { rateLimit } from "@/lib/rate-limit";
+import { checkLimit, clearFailures, noteFailure } from "@/lib/rate-limit";
 import { record } from "@/lib/activity";
 import { env } from "@/lib/env";
 import { DEFAULT_SETTINGS, readSettings, writeSettings } from "@/lib/settings";
@@ -18,10 +18,13 @@ async function callerKey(): Promise<string> {
 }
 
 export async function attemptSignIn(_prev: string | null, form: FormData): Promise<string | null> {
-  const key = await callerKey();
-  const limit = rateLimit(`login:${key}`, 8, 10 * 60 * 1000);
+  const key = `login:${await callerKey()}`;
+  const window = 10 * 60 * 1000;
+
+  // Failures count, successes do not, so signing in from a second tab never locks anyone out.
+  const limit = checkLimit(key, 8, window);
   if (!limit.ok) {
-    return `Too many tries. Wait ${limit.retryInSeconds} seconds and try again.`;
+    return `Too many wrong tries. Wait ${limit.retryInSeconds} seconds and try again.`;
   }
 
   if (!env.operatorPassphrase()) {
@@ -33,10 +36,12 @@ export async function attemptSignIn(_prev: string | null, form: FormData): Promi
 
   const attempt = String(form.get("passphrase") ?? "");
   if (!passphraseMatches(attempt)) {
+    noteFailure(key, window);
     await record("sign_in_failed");
     return "That passphrase does not match. Try again.";
   }
 
+  clearFailures(key);
   await signIn();
   await record("sign_in");
   redirect("/console");

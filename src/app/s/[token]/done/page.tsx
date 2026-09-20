@@ -155,9 +155,11 @@ export default async function Done({
               <>
                 <label className="field" htmlFor="email">
                   Work email
-                  <span className="hint">Only needed if you ticked one of the boxes above.</span>
                 </label>
-                <input id="email" type="email" name="email" autoComplete="email" placeholder="you@yourcity.gov" />
+                <p className="hint field-hint" id="email-hint">
+                  Only needed if you ticked one of the boxes above.
+                </p>
+                <input aria-describedby="email-hint" id="email" type="email" name="email" autoComplete="email" placeholder="you@yourcity.gov" />
               </>
             ) : null}
 

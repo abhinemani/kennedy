@@ -2,7 +2,8 @@
 
 `src/core` is framework-free TypeScript that encodes the product's rules. It is tested by
 `tests/kernel.test.ts`, `tests/modalities.test.ts`, `tests/health.test.ts`, and
-`tests/survey.test.ts` (61 tests, all passing, type-check clean). Build routes, pages, and jobs
+`tests/survey.test.ts`, `tests/import.test.ts`, `tests/draw.test.ts` and `tests/rate-limit.test.ts`
+(106 tests, all passing, type-check clean). Build routes, pages, and jobs
 as thin layers over it.
 
 | File | What it does | Used by |
@@ -22,6 +23,9 @@ as thin layers over it.
 | `quality.ts` | Response flags | Completion handler, review queue |
 | `tokens.ts` | Token minting and IP hashing | Sampling, link routes |
 | `health.ts` | The setup checklist: what each line means and where to fix it | Console setup screen, Settings, Health |
+| `csv.ts` | Strict CSV reading and writing, column mapping profiles | Registry upload, contact import, exports |
+| `resolve.ts` | Normalising names, states and government types; matching a row to a government | Import, the needs-review queue |
+| `draw.ts` | The reproducible stratified draw, primary-role share, the pilot, and every skip reason | Sample screen, token minting |
 
 `src/db/schema.ts` is the Drizzle schema for every table in the spec, plus `settings`,
 `activity_log`, `mapping_profiles`, and `import_rows` for the no-terminal requirements, and
@@ -30,9 +34,9 @@ as thin layers over it.
 
 ## Not in the kernel yet
 
-Entity resolution for imports, the stratified draw, theme-coding prompts, the SurveyMonkey
-adapter, the API send provider, and the methods-note generator. Add each to `src/core` with
-tests when its milestone comes up, in the same style: pure functions in, plain data out.
+Theme-coding prompts, the SurveyMonkey adapter, the API send provider, and the methods-note
+generator. Add each to `src/core` with tests when its milestone comes up, in the same style:
+pure functions in, plain data out.
 
 ## A bug the kernel already caught
 

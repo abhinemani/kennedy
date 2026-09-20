@@ -23,12 +23,13 @@ Read these before writing code, in this order:
 `tests/kernel.test.ts`, `tests/modalities.test.ts`, and `tests/health.test.ts`. It holds the
 rules of the product (study validation, branching, plausibility, benchmark, weighting,
 audience lists, touch audiences, the circuit breaker, the AI follow-up and AI interview
-contracts, the spine and stages, email rendering, tokens, the setup checklist).
+contracts, the spine and stages, email rendering, tokens, the setup checklist, CSV reading,
+entity resolution, and the stratified draw).
 `src/db/schema.ts` is the Drizzle schema. Build the app around the kernel. Do not reimplement
 its logic in routes or components; call it. If a rule must change, change the kernel and its
 test first.
 
-The Next.js app around it is built through Milestone 3. `docs/HANDOFF.md` is the current state
+The Next.js app around it is built through Milestones 0 to 3. `docs/HANDOFF.md` is the current state
 of play: what works, what is deferred, and what Milestone 1 still needs from the operator.
 
 Layout:

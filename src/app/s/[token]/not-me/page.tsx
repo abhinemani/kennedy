@@ -61,17 +61,19 @@ export default async function NotMe({
 
           <label className="field" htmlFor="who_else">
             Who handles this
-            <span className="hint">A job title or an email address is plenty.</span>
           </label>
-          <input id="who_else" type="text" name="who_else" />
+          <p className="hint field-hint" id="who_else-hint">
+            A job title or an email address is plenty.
+          </p>
+          <input aria-describedby="who_else-hint" id="who_else" type="text" name="who_else" />
 
           <label className="field" htmlFor="note">
             Anything else we got wrong
-            <span className="hint">
-              We have you down at {link.entityName}. Tell us if that is not right.
-            </span>
           </label>
-          <textarea id="note" name="note" style={{ minHeight: 90 }} />
+          <p className="hint field-hint" id="note-hint">
+            We have you down at {link.entityName}. Tell us if that is not right.
+          </p>
+          <textarea aria-describedby="note-hint" id="note" name="note" style={{ minHeight: 90 }} />
 
           <div className="nav">
             <Link className="btn ghost" href={`/s/${token}`}>

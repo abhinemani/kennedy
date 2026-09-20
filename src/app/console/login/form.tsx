@@ -9,9 +9,11 @@ export function LoginForm() {
     <form action={action} className="panel" style={{ marginTop: 16 }}>
       <label className="field" htmlFor="passphrase">
         Passphrase
-        <span className="hint">The one set in the Railway dashboard.</span>
       </label>
-      <input id="passphrase" name="passphrase" type="password" autoComplete="current-password" required autoFocus />
+      <p className="hint field-hint" id="passphrase-hint">
+        The one set in the Railway dashboard.
+      </p>
+      <input aria-describedby="passphrase-hint" id="passphrase" name="passphrase" type="password" autoComplete="current-password" required autoFocus />
       {problem ? (
         <p className="problem" role="alert">
           {problem}

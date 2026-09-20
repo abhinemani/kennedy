@@ -55,6 +55,17 @@ export default async function StudyScreen({ params }: { params: Promise<{ slug: 
         published={version ? { version: version.version, at: version.publishedAt.toISOString() } : null}
       />
 
+      <h2>Sample</h2>
+      <div className="panel">
+        <p className="note" style={{ margin: "0 0 12px" }}>
+          Who this study asks, and how many of them. The Sample screen shows every count and every
+          reason somebody is left out before anything is drawn.
+        </p>
+        <Link className="btn ghost" href={`/console/studies/${slug}/sample`}>
+          Open the sample screen
+        </Link>
+      </div>
+
       <h2>Version history</h2>
       <div className="panel">
         {versions.length === 0 ? (

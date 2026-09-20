@@ -11,30 +11,36 @@ export function SettingsForm({ current }: { current: Settings }) {
     <form action={action} className="panel" style={{ marginTop: 16 }}>
       <label className="field" htmlFor="linkDomain">
         Survey link domain
-        <span className="hint">
-          What people will see in their email. Just the domain, no path. For example
-          https://surveys.ethoslabs.us
-        </span>
       </label>
-      <input id="linkDomain" name="linkDomain" type="text" defaultValue={current.linkDomain ?? ""} placeholder="https://surveys.ethoslabs.us" />
+      <p className="hint field-hint" id="linkDomain-hint">
+        What people will see in their email. Just the domain, no path. For example
+          https://surveys.ethoslabs.us
+      </p>
+      <input aria-describedby="linkDomain-hint" id="linkDomain" name="linkDomain" type="text" defaultValue={current.linkDomain ?? ""} placeholder="https://surveys.ethoslabs.us" />
 
       <label className="field" htmlFor="postalAddress">
         Postal address
-        <span className="hint">Carried in the footer of every email. Sending is blocked without it.</span>
       </label>
-      <input id="postalAddress" name="postalAddress" type="text" defaultValue={current.postalAddress ?? ""} />
+      <p className="hint field-hint" id="postalAddress-hint">
+        Carried in the footer of every email. Sending is blocked without it.
+      </p>
+      <input aria-describedby="postalAddress-hint" id="postalAddress" name="postalAddress" type="text" defaultValue={current.postalAddress ?? ""} />
 
       <label className="field" htmlFor="replyTo">
         Reply-to address
-        <span className="hint">Where a reply goes, and the contact shown on the privacy page.</span>
       </label>
-      <input id="replyTo" name="replyTo" type="email" defaultValue={current.replyTo ?? ""} />
+      <p className="hint field-hint" id="replyTo-hint">
+        Where a reply goes, and the contact shown on the privacy page.
+      </p>
+      <input aria-describedby="replyTo-hint" id="replyTo" name="replyTo" type="email" defaultValue={current.replyTo ?? ""} />
 
       <label className="field" htmlFor="sendProvider">
         Send provider
-        <span className="hint">Dry run logs messages and sends nothing. It is the default on purpose.</span>
       </label>
-      <select id="sendProvider" name="sendProvider" defaultValue={current.sendProvider}>
+      <p className="hint field-hint" id="sendProvider-hint">
+        Dry run logs messages and sends nothing. It is the default on purpose.
+      </p>
+      <select aria-describedby="sendProvider-hint" id="sendProvider" name="sendProvider" defaultValue={current.sendProvider}>
         <option value="dryrun">Dry run — log only, send nothing</option>
         <option value="csv">CSV — download a merge-ready file</option>
       </select>
@@ -42,12 +48,14 @@ export function SettingsForm({ current }: { current: Settings }) {
       <label className="field" htmlFor="perInboxDailyLimit">
         Messages per inbox per day
       </label>
-      <input id="perInboxDailyLimit" name="perInboxDailyLimit" type="number" min={0} defaultValue={current.perInboxDailyLimit} />
+      <input aria-describedby="perInboxDailyLimit-hint" id="perInboxDailyLimit" name="perInboxDailyLimit" type="number" min={0} defaultValue={current.perInboxDailyLimit} />
 
       <label className="field" htmlFor="contactHistoryWindowDays">
         Contact history window, in days
-        <span className="hint">Someone asked by another study inside this window is skipped.</span>
       </label>
+      <p className="hint field-hint" id="perInboxDailyLimit-hint">
+        Someone asked by another study inside this window is skipped.
+      </p>
       <input id="contactHistoryWindowDays" name="contactHistoryWindowDays" type="number" min={0} defaultValue={current.contactHistoryWindowDays} />
 
       <label className="field" htmlFor="bounceRate">
