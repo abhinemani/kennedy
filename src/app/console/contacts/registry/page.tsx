@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { countEntities, needsReviewCount, registrySample } from "@/db/queries/contacts";
-import { Nav } from "../../nav";
 import { ContactsNav } from "../nav";
 import { RegistryForm } from "./form";
 
@@ -18,7 +17,6 @@ export default async function Registry() {
 
   return (
     <>
-      <Nav current="/console/contacts" />
       <ContactsNav current="/console/contacts/registry" reviewCount={review} />
 
       <h1>Registry</h1>

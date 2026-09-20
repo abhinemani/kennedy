@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { recentActivity } from "@/lib/activity";
-import { Nav } from "../nav";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +22,6 @@ export default async function Activity() {
 
   return (
     <>
-      <Nav current="/console/activity" />
       <h1>Activity</h1>
       <p className="sub">What happened, and when. The newest is first.</p>
 

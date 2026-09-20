@@ -4,7 +4,6 @@ import { isSignedIn } from "@/lib/auth";
 import { allLists, audienceContacts, needsReviewCount, suppressionCount } from "@/db/queries/contacts";
 import { listCards, ROLES, isRole, type ListContact, type RoleKey } from "@/core/lists";
 import { readSettings } from "@/lib/settings";
-import { Nav } from "../../nav";
 import { ContactsNav } from "../nav";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +54,6 @@ export default async function Lists({
 
   return (
     <>
-      <Nav current="/console/contacts" />
       <ContactsNav current="/console/contacts/lists" reviewCount={reviewCount} />
 
       <h1>Lists</h1>

@@ -37,7 +37,7 @@ async function resetToShippedState(page: Page) {
   const resume = page.getByRole("button", { name: "Resume sending" });
   if (await resume.count()) await resume.click();
 
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
   const box = page.getByLabel("The study file");
   const text = await box.inputValue();
   if (!text.includes("CHANGE_ME")) {
@@ -77,7 +77,7 @@ test("filling in the placeholders and the addresses unblocks sending", async ({ 
   await page.getByRole("button", { name: "Save settings" }).click();
   await expect(page.locator(".problem")).toContainText(/Settings saved|Nothing changed/);
 
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
   const box = page.getByLabel("The study file");
   const text = await box.inputValue();
   await box.fill(text.replaceAll("CHANGE_ME", "research@example.org"));

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { needsReviewCount, panelMemberRows } from "@/db/queries/contacts";
 import { ROLES } from "@/core/lists";
-import { Nav } from "../../nav";
 import { ContactsNav } from "../nav";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +19,6 @@ export default async function Panel() {
 
   return (
     <>
-      <Nav current="/console/contacts" />
       <ContactsNav current="/console/contacts/panel" reviewCount={review} />
 
       <h1>Panel</h1>

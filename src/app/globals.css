@@ -4,8 +4,8 @@
   --ground: #F1F4F2; --surface: #FFFFFF; --ink: #16272B; --muted: #5B6B6E; --line: #D5DDD9;
   --primary: #1F6F5C; --primary-ink: #FFFFFF; --tint: #E2EEEA; --mark: #C47F00; --peer: #8AA39C;
   --ok: #1F6F5C;
-  --ui: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --read: "Newsreader", Georgia, "Times New Roman", serif;
+  --ui: var(--font-ui, "Schibsted Grotesk"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --read: var(--font-read, "Newsreader"), Georgia, "Times New Roman", serif;
   box-sizing: border-box;
 }
 @media (prefers-color-scheme: dark) {
@@ -76,10 +76,13 @@ label.field { display: block; margin: 14px 0 0; font-size: 14.5px; font-weight: 
 .state { font-size: 12.5px; color: var(--muted); }
 .fix { display: inline-block; margin-top: 8px; font-size: 14px; }
 
-.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 24px; }
-.tabs a { font-size: 14px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line);
-  background: var(--surface); color: var(--ink); text-decoration: none; }
-.tabs a[aria-current="page"] { border-color: var(--primary); background: var(--tint); font-weight: 500; }
+.subnav { display: flex; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--line);
+  margin: 0 0 22px; scrollbar-width: none; }
+.subnav::-webkit-scrollbar { display: none; }
+.subnav a { padding: 9px 12px; font-size: 14px; color: var(--muted); text-decoration: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.subnav a:hover { color: var(--ink); }
+.subnav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--primary); font-weight: 500; }
 
 .problem { background: var(--tint); border-left: 3px solid var(--mark); padding: 10px 12px;
   border-radius: 6px; margin: 14px 0; font-size: 14.5px; }
@@ -149,3 +152,147 @@ tr:last-child td { border-bottom: 0; }
 .theme .track { grid-column: 1/-1; height: 6px; border-radius: 3px; background: var(--tint); }
 .theme .fill { height: 6px; border-radius: 3px; background: var(--peer); }
 .theme .n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------------------------------
+   The operator console. Everything below is scoped to .console so the respondent pages keep
+   the phone-first look above exactly as it is. The console is a workspace: a rail on the
+   left, a wide content column, flatter surfaces, denser tables, and numbers that sit next
+   to their labels.
+   ------------------------------------------------------------------------------------------ */
+.console { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100vh; }
+.rail { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 2px;
+  padding: 18px 12px 16px; border-right: 1px solid var(--line); background: var(--ground); }
+.rail nav { display: contents; }
+.rail .name { display: block; padding: 6px 10px 20px; font-size: 17px; }
+.rail .name small { display: block; margin: 2px 0 0; font-size: 12.5px; }
+.rail .item { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: 14.5px; }
+.rail .item:hover { background: var(--tint); }
+.rail .item[aria-current="page"] { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font-weight: 500; }
+.rail .item-label { display: inline-flex; align-items: center; gap: 9px; }
+.rail .item svg { color: var(--muted); flex: none; }
+.rail .item[aria-current="page"] svg { color: var(--primary); }
+.rail .item .count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums;
+  background: var(--tint); border-radius: 999px; padding: 1px 7px; }
+.rail .foot { margin-top: auto; padding: 10px; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.rail .foot a { color: var(--muted); }
+.main { padding: 28px 40px 88px; max-width: 1160px; width: 100%; min-width: 0; }
+
+@media (max-width: 899px) {
+  .console { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; height: auto; flex-direction: row; align-items: center; overflow-x: auto;
+    border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 12px; scrollbar-width: none; }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail .name { padding: 0 12px 0 4px; white-space: nowrap; }
+  .rail .name small { display: none; }
+  .rail .item { padding: 7px 10px; white-space: nowrap; }
+  .rail .foot { display: none; }
+  .main { padding: 20px 16px 64px; }
+}
+
+/* type in the console: a touch smaller and tighter than the survey, which is read on a phone */
+.console h1 { font-size: 24px; margin: 0 0 4px; }
+.console h2 { font-size: 15px; font-weight: 600; margin: 30px 0 10px; letter-spacing: -.005em; }
+.console h2:first-child { margin-top: 0; }
+.console .sub { font-size: 14.5px; margin-bottom: 4px; }
+.console .label { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin: 0 0 6px; }
+.console .panel { border-radius: 10px; padding: 16px 18px; }
+.console .panel + .panel { margin-top: 10px; }
+.console .btn { padding: 9px 14px; border-radius: 8px; font-size: 14.5px; }
+.console input[type=text], .console input[type=email], .console input[type=number],
+.console input[type=password], .console select { padding: 10px 12px; border-radius: 8px; font-size: 14.5px; }
+.console label.field { margin-top: 16px; font-size: 14px; }
+.console .field-hint { font-size: 13.5px; }
+.console .note { font-size: 13.5px; }
+.console .problem, .console .ok-note, .console .problems li { font-size: 14px; border-radius: 8px; }
+.console .rows li { font-size: 14px; padding: 9px 0; }
+.console .flag { margin-top: 32px; }
+.console pre { font-size: 13px; line-height: 1.5; margin: 0; }
+
+/* status, as a small pill with a dot: draft, pilot, fielding, closed, and ok/warn for facts */
+.pill { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 500;
+  padding: 3px 10px 3px 8px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); white-space: nowrap; line-height: 1.4; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
+.pill.fielding::before, .pill.ok::before { background: var(--primary); }
+.pill.pilot::before, .pill.warn::before { background: var(--mark); }
+.pill.closed::before { background: var(--ink); }
+
+/* stat tiles: one number, one label, one line of meaning */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 16px 0 0; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.stat .n { display: block; font-family: var(--read); font-size: 32px; line-height: 1.05; font-weight: 500;
+  font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.stat .n small { font-family: var(--ui); font-size: 13.5px; font-weight: 400; color: var(--muted); margin-left: 5px; letter-spacing: 0; }
+.stat .l { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.stat .l b { font-weight: 500; color: var(--ink); }
+.stat.warn { border-color: var(--mark); }
+
+/* a study's header: name, status, version, and the tabs that hold its screens together */
+.study-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 12px; }
+.study-head .crumb { font-size: 13px; color: var(--muted); text-decoration: none; flex-basis: 100%; }
+.study-head .crumb:hover { color: var(--ink); }
+.study-head .title { font-size: 21px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+.study-head .meta { font-size: 13.5px; color: var(--muted); }
+
+/* two columns where a screen has a main and a side */
+.cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); gap: 18px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+@media (max-width: 899px) { .cols, .two { grid-template-columns: minmax(0, 1fr); } }
+
+/* tables in the console are real tables: sticky heads, quiet rows, numbers on the right */
+.console table { font-size: 14px; min-width: 0; }
+.console th { font-size: 12.5px; font-weight: 500; color: var(--muted); padding: 6px 10px 8px;
+  position: sticky; top: 0; background: var(--surface); }
+.console td { padding: 9px 10px; }
+.console th:first-child, .console td:first-child { padding-left: 0; }
+.console th:last-child, .console td:last-child { padding-right: 0; }
+.console tbody tr:hover td { background: color-mix(in srgb, var(--tint) 55%, transparent); }
+
+/* a list of things with a status: studies, lists, versions */
+.index { list-style: none; margin: 0; padding: 0; }
+.index li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--line); }
+.index li:last-child { border-bottom: 0; }
+.index a.primary { grid-column: 1; grid-row: 1; font-weight: 500; color: var(--ink); text-decoration: none; font-size: 15px; }
+.index a.primary:hover { color: var(--primary); }
+.index .meta { grid-column: 1; grid-row: 2; font-size: 13px; color: var(--muted); }
+.index .right { grid-column: 2; grid-row: 1 / span 2; display: flex; align-items: center; gap: 12px; font-size: 13.5px;
+  color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* the review workspace: a queue on the left, the response being judged on the right */
+.review { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+.queue { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.queue-scroll { max-height: calc(100vh - 220px); overflow-y: auto; }
+.queue a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 8px; padding: 10px 14px;
+  border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: 14px; }
+.queue a:last-child { border-bottom: 0; }
+.queue a:hover { background: color-mix(in srgb, var(--tint) 55%, transparent); }
+.queue a[aria-current="true"] { background: var(--tint); box-shadow: inset 3px 0 0 var(--primary); }
+.queue a b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue a .meta { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; }
+.queue .tag { font-size: 12px; font-weight: 600; color: var(--mark); font-variant-numeric: tabular-nums; }
+.queue .tag.out { color: var(--muted); font-weight: 500; }
+.queue .tag.kept { color: var(--ok); font-weight: 500; }
+.queue-head { padding: 10px 14px; font-size: 12.5px; color: var(--muted); border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; gap: 8px; }
+@media (max-width: 899px) { .review { grid-template-columns: minmax(0, 1fr); } .queue { order: 2; } .queue-scroll { max-height: none; } }
+
+/* the funnel on the overview, as one horizontal bar */
+.strip { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--tint); margin: 12px 0 8px; }
+.strip i { display: block; height: 100%; }
+.strip-key { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.strip-key b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.strip-key i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+
+/* what to do next, as one line with a button */
+.next { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  background: var(--tint); border-radius: 10px; padding: 12px 16px; margin-top: 16px; font-size: 14.5px; }
+.next .btn { flex: none; }
+
+/* list cards go three across once there is room */
+@media (min-width: 900px) { .console .lists { grid-template-columns: repeat(3, 1fr); } }
+
+/* the sign-in page is the one console page without a rail */
+.gate { max-width: 400px; margin: 12vh auto 0; padding: 0 18px; }
+.gate .name { display: block; margin-bottom: 24px; }

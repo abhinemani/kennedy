@@ -20,7 +20,7 @@ async function signIn(page: Page) {
 }
 
 const fileText = async (page: Page) => {
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
   return page.getByLabel("The study file").inputValue();
 };
 
@@ -131,7 +131,7 @@ test("a valid email edit is saved and still passes the study check", async ({ pa
   await body.locator("xpath=ancestor::form").getByRole("button", { name: "Save the email" }).click();
   await expect(page.locator(SAID).first()).toContainText("Saved.");
 
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
   await expect(page.locator(".ok-note")).toBeVisible();
   await expect(page.getByLabel("The study file")).toHaveValue(/One last note from me/);
 });
@@ -154,7 +154,7 @@ test("sample targets and the pilot size are editable, and checked", async ({ pag
 
 test("the form refuses to work on a file that does not parse", async ({ page }) => {
   await signIn(page);
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
 
   const box = page.getByLabel("The study file");
   const original = await box.inputValue();
@@ -167,7 +167,7 @@ test("the form refuses to work on a file that does not parse", async ({ page }) 
   await expect(page.locator(".problem")).toContainText("never be the thing that breaks one");
 
   // Put it back.
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
   await page.getByLabel("The study file").fill(original);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(SAID).first()).toContainText("No problems found");
@@ -177,7 +177,7 @@ test("give the study file back exactly as it was", async ({ page }) => {
   test.skip(borrowed.length === 0, "nothing was borrowed");
 
   await signIn(page);
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
   await page.getByLabel("The study file").fill(borrowed);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(SAID).first()).toContainText("No problems found");

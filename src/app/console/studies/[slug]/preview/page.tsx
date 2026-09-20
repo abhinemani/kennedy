@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { parseStudy } from "@/core/study-schema";
 import { studyBySlug } from "@/db/queries/studies";
-import { Nav } from "../../../nav";
 import { Preview } from "./preview";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +18,15 @@ export default async function PreviewScreen({ params }: { params: Promise<{ slug
 
   return (
     <>
-      <Nav current="/console/studies" />
-      <h1>Preview</h1>
+      <nav className="subnav" aria-label="Ways to edit" style={{ marginTop: -8 }}>
+        <Link href={`/console/studies/${slug}/edit`}>Form</Link>
+        <Link href={`/console/studies/${slug}/file`}>Whole file</Link>
+        <Link href={`/console/studies/${slug}/preview`} aria-current="page">
+          Preview
+        </Link>
+      </nav>
+
+      <h2>Preview</h2>
       <p className="sub">
         The respondent flow, with link attributes you can change. Nothing here is recorded.
       </p>

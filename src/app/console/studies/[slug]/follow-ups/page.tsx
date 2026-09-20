@@ -7,7 +7,6 @@ import { studyAndVersion, studyOf } from "@/db/queries/studies";
 import { pausedReason, sentToday, touchesSoFar } from "@/db/queries/sending";
 import { readSettings } from "@/lib/settings";
 import { deliveryHealth, planTouch, previewMessage, whyBlocked, type TouchPlan } from "@/lib/sending";
-import { Nav } from "../../../nav";
 import { QueueForm, PauseForm } from "./forms";
 
 export const dynamic = "force-dynamic";
@@ -42,11 +41,10 @@ export default async function FollowUps({
   if (!spec) {
     return (
       <>
-        <Nav current="/console/studies" />
         <h1>Follow-ups</h1>
         <p className="problem">
           The study file has problems, so its emails cannot be read.{" "}
-          <Link href={`/console/studies/${slug}`}>Fix them on the study screen</Link>.
+          <Link href={`/console/studies/${slug}/file`}>Fix them in the study file</Link>.
         </p>
       </>
     );
@@ -72,10 +70,9 @@ export default async function FollowUps({
 
   return (
     <>
-      <Nav current="/console/studies" />
       <h1>Follow-ups</h1>
       <p className="sub">
-        {study.name}. Every email is plain text with one survey link, a postal address, and an
+        Every email is plain text with one survey link, a postal address, and an
         unsubscribe link. The provider is {settings.sendProvider === "dryrun"
           ? "dry run, so nothing leaves the system"
           : settings.sendProvider === "csv"
@@ -94,20 +91,27 @@ export default async function FollowUps({
         </p>
       )}
 
-      {health ? (
-        <div className="panel" style={{ marginTop: 16 }}>
-          <p className="note" style={{ margin: 0 }}>
-            Of the last {health.sends.toLocaleString("en-US")} emails a provider reported on,{" "}
-            {(health.bounce * 100).toFixed(1)}% bounced and {(health.complaint * 100).toFixed(2)}%
-            were marked as spam.
-            {health.hot
-              ? " That is above your thresholds. Resuming while it stays there risks the domain."
-              : " Both are under your thresholds."}
-          </p>
+      <div className="two" style={{ marginTop: 16 }}>
+        <div className="panel">
+          <span className="label">Delivery health</span>
+          {health ? (
+            <p className="note" style={{ margin: 0 }}>
+              Of the last {health.sends.toLocaleString("en-US")} emails a provider reported on,{" "}
+              {(health.bounce * 100).toFixed(1)}% bounced and {(health.complaint * 100).toFixed(2)}%
+              were marked as spam.
+              {health.hot
+                ? " That is above your thresholds. Resuming while it stays there risks the domain."
+                : " Both are under your thresholds."}
+            </p>
+          ) : (
+            <p className="note" style={{ margin: 0 }}>
+              No provider has reported on a send yet. Bounce and complaint rates appear here once
+              one does, and the circuit breaker watches them.
+            </p>
+          )}
         </div>
-      ) : null}
-
-      <PauseForm slug={slug} paused={Boolean(manual)} hot={Boolean(health?.hot)} />
+        <PauseForm slug={slug} paused={Boolean(manual)} hot={Boolean(health?.hot)} />
+      </div>
 
       {plans.map((plan) => {
         const sent = sentByTouch.get(plan.touch);

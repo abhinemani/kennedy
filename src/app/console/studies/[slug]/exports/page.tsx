@@ -5,7 +5,6 @@ import { parseStudy } from "@/core/study-schema";
 import { studyAndVersion, studyOf } from "@/db/queries/studies";
 import { analyse, noteFor } from "@/lib/study-analysis";
 import { handRaiseRows } from "@/db/queries/analysis";
-import { Nav } from "../../../nav";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +21,10 @@ export default async function Exports({ params }: { params: Promise<{ slug: stri
   if (!spec) {
     return (
       <>
-        <Nav current="/console/studies" />
         <h1>Exports</h1>
         <p className="problem">
           The study file has problems, so nothing can be exported yet.{" "}
-          <Link href={`/console/studies/${slug}`}>Fix them on the study screen</Link>.
+          <Link href={`/console/studies/${slug}/file`}>Fix them in the study file</Link>.
         </p>
       </>
     );
@@ -73,9 +71,8 @@ export default async function Exports({ params }: { params: Promise<{ slug: stri
 
   return (
     <>
-      <Nav current="/console/studies" />
       <h1>Exports</h1>
-      <p className="sub">{study.name}. Every export is a download.</p>
+      <p className="sub">Every export is a download.</p>
 
       <p className="ok-note">
         The default exports are anonymised. A respondent is a size band, a state, and a role.

@@ -40,7 +40,7 @@ test("the console explains the state of the interview stage", async ({ page }) =
 
 test("switching the engine to SurveyMonkey turns the interview off, and says why", async ({ page }) => {
   await signIn(page);
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
 
   const box = page.getByLabel("The study file");
   const original = await box.inputValue();
@@ -56,7 +56,7 @@ test("switching the engine to SurveyMonkey turns the interview off, and says why
 
 test("turning the interview off leaves the survey alone", async ({ page }) => {
   await signIn(page);
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
 
   const box = page.getByLabel("The study file");
   const original = await box.inputValue();
@@ -82,7 +82,7 @@ test("turning the interview off leaves the survey alone", async ({ page }) => {
   await expect(page.locator(".problem")).toContainText("no interview stage");
 
   // Put it back for the next run.
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
   await page.getByLabel("The study file").fill(original);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.locator(SAID).first()).toContainText("Saved");
@@ -96,7 +96,7 @@ test("a respondent who has not finished is not offered an interview", async ({ p
 
 test("the end screen offers the conversation, with what it is said plainly", async ({ page }) => {
   await signIn(page);
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
 
   // Make a fresh rehearsal link and walk it, so there is a completed response to offer.
   await page.getByRole("button", { name: "Create a rehearsal link" }).click();

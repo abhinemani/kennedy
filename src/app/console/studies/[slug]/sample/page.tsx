@@ -5,7 +5,6 @@ import { parseStudy } from "@/core/study-schema";
 import { SKIP_WORDS, type SkipReason } from "@/core/draw";
 import { studyAndVersion, studyOf } from "@/db/queries/studies";
 import { drawnSummary, planSample } from "@/db/queries/sample";
-import { Nav } from "../../../nav";
 import { DrawForm } from "./form";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +22,6 @@ export default async function Sample({ params }: { params: Promise<{ slug: strin
   if (!version) {
     return (
       <>
-        <Nav current="/console/studies" />
         <h1>Sample</h1>
         <p className="problem">
           Publish the study first. A sample records which version each person was asked, so there
@@ -55,10 +53,9 @@ export default async function Sample({ params }: { params: Promise<{ slug: strin
 
   return (
     <>
-      <Nav current="/console/studies" />
       <h1>Sample</h1>
       <p className="sub">
-        {study.name}. {alreadyDrawn > 0
+        {alreadyDrawn > 0
           ? `${alreadyDrawn.toLocaleString("en-US")} people have already been drawn into this study.`
           : "Nobody has been drawn into this study yet."}
       </p>

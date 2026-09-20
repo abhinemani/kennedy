@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { parseStudy } from "@/core/study-schema";
 import { studyBySlug } from "@/db/queries/studies";
-import { Nav } from "../../../nav";
 import { QuestionCard, SampleForm, TouchCard } from "./forms";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +20,11 @@ export default async function FormEditor({ params }: { params: Promise<{ slug: s
   if (!parsed.ok) {
     return (
       <>
-        <Nav current="/console/studies" />
         <h1>Edit</h1>
         <p className="problem">
           This file has problems, so the form cannot work on it. The form only ever edits a study
           that already parses, which is how it can never be the thing that breaks one.{" "}
-          <Link href={`/console/studies/${slug}`}>Fix it in the text view</Link>.
+          <Link href={`/console/studies/${slug}/file`}>Fix it in the whole file</Link>.
         </p>
       </>
     );
@@ -45,10 +43,17 @@ export default async function FormEditor({ params }: { params: Promise<{ slug: s
 
   return (
     <>
-      <Nav current="/console/studies" />
-      <h1>Edit</h1>
+      <nav className="subnav" aria-label="Ways to edit" style={{ marginTop: -8 }}>
+        <Link href={`/console/studies/${slug}/edit`} aria-current="page">
+          Form
+        </Link>
+        <Link href={`/console/studies/${slug}/file`}>Whole file</Link>
+        <Link href={`/console/studies/${slug}/preview`}>Preview</Link>
+      </nav>
+
+      <h2>Edit</h2>
       <p className="sub">
-        {study.name}. The same file as the text view, one field at a time. Every change is checked
+        The same file as the whole-file view, one field at a time. Every change is checked
         before it is saved.
       </p>
 
@@ -84,7 +89,7 @@ export default async function FormEditor({ params }: { params: Promise<{ slug: s
       />
 
       <p className="flag">
-        <Link href={`/console/studies/${slug}`}>Advanced view, and publishing</Link> ·{" "}
+        <Link href={`/console/studies/${slug}/file`}>The whole file, and publishing</Link> ·{" "}
         <Link href={`/console/studies/${slug}/preview`}>Preview the survey</Link>
       </p>
     </>
