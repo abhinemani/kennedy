@@ -1,6 +1,6 @@
-# Canvass
+# Kennedy
 
-Canvass (working name) is a purpose-built tool for surveying local governments. One operator
+Kennedy is a purpose-built tool for surveying local governments. One operator
 (Abhi) runs research studies against a shared registry of government entities and contacts.
 It is built only for the public sector and grows into a standing panel of officials. The first
 study is a public records workload survey for Brandeis; later studies cover other
@@ -15,15 +15,30 @@ Read these before writing code, in this order:
 4. `docs/KERNEL.md` for the code that already exists in `src/core` and `src/db`
 5. `templates/brandeis-records-2026/study.yaml` for the worked example every feature must support
 6. `docs/prototype.html` for the look, the respondent flow, and the console layout
+7. `docs/HANDOFF.md` for where the build actually stands right now, and what to pick up next
 
 ## What already exists
 
 `src/core` is the kernel: pure TypeScript with no framework in it, covered by
-`tests/kernel.test.ts`. It holds the rules of the product (study validation, branching,
-plausibility, benchmark, weighting, audience lists, touch audiences, the circuit breaker, the AI
-follow-up and AI interview contracts, the spine and stages, email rendering, tokens). `src/db/schema.ts` is the Drizzle schema. Build the app around the
-kernel. Do not reimplement its logic in routes or components; call it. If a rule must change,
-change the kernel and its test first.
+`tests/kernel.test.ts`, `tests/modalities.test.ts`, and `tests/health.test.ts`. It holds the
+rules of the product (study validation, branching, plausibility, benchmark, weighting,
+audience lists, touch audiences, the circuit breaker, the AI follow-up and AI interview
+contracts, the spine and stages, email rendering, tokens, the setup checklist).
+`src/db/schema.ts` is the Drizzle schema. Build the app around the kernel. Do not reimplement
+its logic in routes or components; call it. If a rule must change, change the kernel and its
+test first.
+
+The Next.js app around it is built through Milestone 3. `docs/HANDOFF.md` is the current state
+of play: what works, what is deferred, and what Milestone 1 still needs from the operator.
+
+Layout:
+
+- `src/core`, `src/db/schema.ts` — the kernel and the schema. Framework-free.
+- `src/db/queries/*` — SQL per screen. No rules live here.
+- `src/lib/*` — auth, settings, the activity log, request safety, benchmark peers.
+- `src/app/console/*` — the operator console, behind one passphrase.
+- `src/app/s/[token]/*`, `src/app/u/[token]/*` — the respondent pages. Server-rendered.
+- `e2e/*` — Playwright, at 390px, on WebKit.
 
 ## Stack
 
@@ -86,3 +101,8 @@ what happened and what to do next.
 
 `npm run dev`, `npm test`, `npm run typecheck`, `npm run e2e`. Migrations run automatically
 in Railway's pre-deploy step, so there is no migrate command for a person to run.
+
+The database-backed tests need a local Postgres: `docker compose up -d postgres`, then
+`npm run migrate`. They skip themselves when `DATABASE_URL` is not set, so never let a green
+run fool you: check that the console and survey projects actually ran. Schema changes are
+generated with `npm run db:generate` and the result is committed.

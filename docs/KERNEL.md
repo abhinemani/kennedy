@@ -1,7 +1,8 @@
 # The kernel
 
 `src/core` is framework-free TypeScript that encodes the product's rules. It is tested by
-`tests/kernel.test.ts` and `tests/modalities.test.ts` (37 tests, all passing, type-check clean). Build routes, pages, and jobs
+`tests/kernel.test.ts`, `tests/modalities.test.ts`, `tests/health.test.ts`, and
+`tests/survey.test.ts` (61 tests, all passing, type-check clean). Build routes, pages, and jobs
 as thin layers over it.
 
 | File | What it does | Used by |
@@ -20,6 +21,7 @@ as thin layers over it.
 | `engines.ts` | Engine interface, native engine, feature availability and its explanation | Links, publish, console |
 | `quality.ts` | Response flags | Completion handler, review queue |
 | `tokens.ts` | Token minting and IP hashing | Sampling, link routes |
+| `health.ts` | The setup checklist: what each line means and where to fix it | Console setup screen, Settings, Health |
 
 `src/db/schema.ts` is the Drizzle schema for every table in the spec, plus `settings`,
 `activity_log`, `mapping_profiles`, and `import_rows` for the no-terminal requirements, and

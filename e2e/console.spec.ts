@@ -36,7 +36,9 @@ test("saving settings turns the matching checklist lines green without a reload"
   await page.getByLabel("Reply-to address").fill("research@example.org");
   await page.getByRole("button", { name: "Save settings" }).click();
 
-  await expect(page.locator(message)).toContainText("Settings saved.");
+  // "Nothing changed" when a previous run left the same values; either way the checklist
+  // below must agree with what the form now says.
+  await expect(page.locator(message)).toContainText(/Settings saved\.|Nothing changed\./);
   // The health panel is on this same page. It must not still be telling the operator to
   // do the thing they just did.
   const domainLine = page.locator("li", { hasText: "Survey link domain confirmed" });

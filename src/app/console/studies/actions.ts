@@ -1,0 +1,108 @@
+"use server";
+
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { isSignedIn } from "@/lib/auth";
+import { record } from "@/lib/activity";
+import { parseStudy } from "@/core/study-schema";
+import { createStudy, publish, saveDraft, setStatus, studyBySlug } from "@/db/queries/studies";
+import { createTestLink } from "@/db/queries/test-link";
+
+async function requireOperator() {
+  if (!(await isSignedIn())) redirect("/console/login");
+}
+
+export type TemplateSummary = { dir: string; name: string; slug: string };
+
+const TEMPLATES_DIR = path.join(process.cwd(), "templates");
+
+export async function readTemplate(dir: string): Promise<string> {
+  return readFile(path.join(TEMPLATES_DIR, dir, "study.yaml"), "utf8");
+}
+
+export async function startFromTemplate(formData: FormData): Promise<void> {
+  await requireOperator();
+  const dir = String(formData.get("template") ?? "");
+  if (!/^[a-z0-9-]+$/.test(dir)) redirect("/console/studies/new?problem=unknown");
+
+  let text: string;
+  try {
+    text = await readTemplate(dir);
+  } catch {
+    redirect("/console/studies/new?problem=unknown");
+  }
+
+  const created = await createStudy(text);
+  if ("problem" in created) {
+    redirect(`/console/studies/new?problem=${encodeURIComponent(created.problem)}`);
+  }
+  await record("study_created", { slug: created.slug, from: dir });
+  revalidatePath("/console/studies");
+  redirect(`/console/studies/${created.slug}`);
+}
+
+export async function saveStudyDraft(_prev: string | null, formData: FormData): Promise<string | null> {
+  await requireOperator();
+  const slug = String(formData.get("slug") ?? "");
+  const text = String(formData.get("text") ?? "");
+
+  try {
+    await saveDraft(slug, text);
+  } catch {
+    return "Could not save. The database did not answer. Check the first line of the setup checklist.";
+  }
+  await record("study_draft_saved", { slug });
+  revalidatePath(`/console/studies/${slug}`);
+
+  const parsed = parseStudy(text);
+  return parsed.ok
+    ? "Saved. No problems found."
+    : `Saved, with ${parsed.problems.length} problem${parsed.problems.length === 1 ? "" : "s"} still to fix.`;
+}
+
+export async function publishStudy(_prev: string | null, formData: FormData): Promise<string | null> {
+  await requireOperator();
+  const slug = String(formData.get("slug") ?? "");
+
+  const result = await publish(slug);
+  if (!result.ok) return result.problem;
+  if (result.unchanged) return `Nothing to publish. Version ${result.version} already matches the file.`;
+
+  await record("study_published", { slug, version: result.version });
+  revalidatePath(`/console/studies/${slug}`);
+  return `Published version ${result.version}. That version is now frozen and every response records which one it answered.`;
+}
+
+export async function makeTestLink(_prev: string | null, formData: FormData): Promise<string | null> {
+  await requireOperator();
+  const slug = String(formData.get("slug") ?? "");
+
+  const study = await studyBySlug(slug);
+  if (!study) return "That study no longer exists.";
+
+  const parsed = parseStudy(study.draftText);
+  if (!parsed.ok) return "Publish the study first. A link needs a published version to answer.";
+
+  try {
+    const token = await createTestLink(parsed.study, study.id);
+    await record("test_link_created", { slug });
+    revalidatePath(`/console/studies/${slug}`);
+    return `/s/${token}`;
+  } catch {
+    return "Could not create a rehearsal link. Publish the study first, then try again.";
+  }
+}
+
+export async function changeStatus(formData: FormData): Promise<void> {
+  await requireOperator();
+  const slug = String(formData.get("slug") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!["draft", "pilot", "fielding", "closed"].includes(status)) redirect(`/console/studies/${slug}`);
+
+  await setStatus(slug, status as "draft" | "pilot" | "fielding" | "closed");
+  await record("study_status_changed", { slug, status });
+  revalidatePath(`/console/studies/${slug}`);
+  redirect(`/console/studies/${slug}`);
+}

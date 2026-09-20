@@ -85,3 +85,36 @@ label.field .hint { display: block; font-weight: 400; color: var(--muted); font-
   border-radius: 6px; margin: 14px 0; font-size: 14.5px; }
 .flag { font-size: 13px; color: var(--muted); margin-top: 28px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* respondent */
+.letter { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px 18px; }
+.progress { height: 4px; background: var(--tint); border-radius: 2px; margin-bottom: 22px; }
+.progress i { display: block; height: 4px; border-radius: 2px; background: var(--primary); }
+.q { font-family: var(--read); font-size: 23px; line-height: 1.28; margin: 0 0 8px; font-weight: 500; }
+.hint { color: var(--muted); font-size: 14.5px; margin: 0 0 16px; }
+.opts { display: grid; gap: 8px; margin: 14px 0 0; }
+.opt { font: inherit; text-align: left; padding: 13px 14px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); cursor: pointer; width: 100%; }
+.opt[aria-pressed="true"] { border-color: var(--primary); background: var(--tint); font-weight: 500; }
+.opt-check { display: flex; gap: 10px; align-items: center; }
+.opt-check input { width: 20px; height: 20px; accent-color: var(--primary); }
+.scale { display: grid; gap: 6px; margin-top: 14px; }
+.scale .opt { text-align: center; padding: 14px 0; }
+.ends { display: flex; justify-content: space-between; color: var(--muted); font-size: 13.5px; margin-top: 6px; }
+.check { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0; font-size: 15.5px; }
+.check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--primary); }
+input[type=range] { width: 100%; accent-color: var(--primary); margin-top: 18px; }
+.big { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; display: block; }
+textarea { min-height: 120px; resize: vertical; font-family: var(--read); font-size: 18px; line-height: 1.4; }
+figure svg { max-width: 100%; }
+
+/* study editor */
+.editor { display: grid; gap: 14px; }
+.editor textarea { min-height: 460px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px; line-height: 1.5; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
+.problems { list-style: none; margin: 0; padding: 0; }
+.problems li { padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 14.5px;
+  background: var(--tint); border-left: 3px solid var(--mark); }
+.problems li b { display: block; font-weight: 500; font-size: 13px; color: var(--muted); }
+.ok-note { background: var(--tint); border-left: 3px solid var(--primary); padding: 10px 12px; border-radius: 8px; font-size: 14.5px; }
+@media (min-width: 900px) { .editor { grid-template-columns: 3fr 2fr; align-items: start; } }
