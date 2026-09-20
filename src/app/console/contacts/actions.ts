@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { isSignedIn } from "@/lib/auth";
 import { record } from "@/lib/activity";
 import { applyMapping, missingColumns, parseCsv, type Mapping } from "@/core/csv";
+import { decodeUpload, describeEncoding, type Decoded } from "@/core/encoding";
+import { describeCensusParse, looksLikeCensusFile, parseCensusUnits } from "@/core/census";
 import {
   commitBatch, discardBatch, loadRegistry, matchReviewRow, saveProfile, skipReviewRow, stageImport,
 } from "@/db/queries/contacts";
@@ -16,15 +18,20 @@ async function requireOperator() {
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
-async function readUpload(form: FormData, field = "file"): Promise<{ text: string } | { problem: string }> {
+async function readUpload(
+  form: FormData,
+  field = "file",
+): Promise<{ text: string; encoding: Decoded["encoding"] } | { problem: string }> {
   const file = form.get(field);
   if (!(file instanceof File) || file.size === 0) {
-    return { problem: "Choose a CSV file to upload." };
+    return { problem: "Choose a file to upload." };
   }
   if (file.size > MAX_BYTES) {
     return { problem: "That file is larger than 25 MB. Split it and upload the parts one at a time." };
   }
-  return { text: await file.text() };
+  // Not every supplier export is UTF-8, and reading one as if it were turns "Ureña" into
+  // something that will never match the registry again.
+  return decodeUpload(new Uint8Array(await file.arrayBuffer()));
 }
 
 // ---------------------------------------------------------------- registry
@@ -35,12 +42,50 @@ export async function uploadRegistry(_prev: string | null, form: FormData): Prom
   const read = await readUpload(form);
   if ("problem" in read) return read.problem;
 
+  // The Census publishes the government units list as a fixed-width text file, not a CSV.
+  // Making the operator convert it first is exactly the command-line work rule 10 forbids.
+  if (looksLikeCensusFile(read.text)) {
+    const parse = parseCensusUnits(read.text);
+    if (parse.governments.length === 0) {
+      return "That looks like a Census unit file, but no government records could be read from it.";
+    }
+    try {
+      const result = await loadRegistry(
+        parse.governments.map((g) => ({
+          geoid: g.geoid,
+          name: g.name,
+          state: g.state,
+          type: g.type,
+          population: g.population === null ? "" : String(g.population),
+          annual_budget: "",
+          county: g.county ?? "",
+          email_domain: "",
+        })),
+      );
+      await record("registry_uploaded", { source: "census", added: result.added, updated: result.updated });
+      revalidatePath("/console/contacts/registry");
+      revalidatePath("/console");
+
+      const notes = [
+        `${result.added.toLocaleString("en-US")} governments added, ${result.updated.toLocaleString("en-US")} updated.`,
+        describeCensusParse(parse),
+        parse.skipped.length
+          ? `${parse.skipped.length} records were set aside; the first, on line ${parse.skipped[0]!.line}: ${parse.skipped[0]!.reason}`
+          : null,
+        describeEncoding(read.encoding),
+      ].filter(Boolean);
+      return notes.join(" ");
+    } catch {
+      return "Could not save the registry. The database did not answer. Check the first line of the setup checklist.";
+    }
+  }
+
   const { headers, rows, malformed } = parseCsv(read.text);
   if (rows.length === 0) {
     return "That file has a header but no rows we could read.";
   }
   if (!headers.includes("name") || !headers.includes("state") || !headers.includes("type")) {
-    return `The registry file needs columns called name, state and type. This one has: ${headers.join(", ")}.`;
+    return `The registry file needs columns called name, state and type, or it can be the Census unit file as published. This one has: ${headers.join(", ")}.`;
   }
 
   try {
@@ -58,7 +103,8 @@ export async function uploadRegistry(_prev: string | null, form: FormData): Prom
       const first = result.skipped[0]!;
       parts.push(`${result.skipped.length} rows were skipped, the first on line ${first.line}: ${first.reason}`);
     }
-    return `${parts.join(". ")}.`;
+    const encodingNote = describeEncoding(read.encoding);
+    return `${parts.join(". ")}.${encodingNote ? ` ${encodingNote}` : ""}`;
   } catch {
     return "Could not save the registry. The database did not answer. Check the first line of the setup checklist.";
   }
@@ -93,9 +139,25 @@ export async function stageContacts(_prev: string | null, form: FormData): Promi
   const profileName = String(form.get("profile_name") ?? "").trim();
   if (profileName) await saveProfile(profileName, mapping);
 
+  // One role for the whole file, when the supplier ships one list per role. It beats mapping
+  // a column whose values are theirs, not ours.
+  const fileRole = String(form.get("file_role") ?? "").trim();
+
   const batch = randomUUID();
-  await stageImport(batch, rows.map((r) => applyMapping(r, mapping)));
-  await record("import_staged", { batch, rows: rows.length, malformed: malformed.length });
+  await stageImport(
+    batch,
+    rows.map((r) => {
+      const mapped = applyMapping(r, mapping);
+      // Suppliers usually give a first and last name, not one full name.
+      if (!mapped.full_name) {
+        const both = [mapped.first_name, mapped.last_name].filter(Boolean).join(" ").trim();
+        if (both) mapped.full_name = both;
+      }
+      if (fileRole) mapped.role = fileRole;
+      return mapped;
+    }),
+  );
+  await record("import_staged", { batch, rows: rows.length, malformed: malformed.length, fileRole: fileRole || null });
   redirect(`/console/contacts/import/${batch}`);
 }
 

@@ -9,8 +9,9 @@ export function RegistryForm() {
   return (
     <form action={action} className="panel">
       <p className="note" style={{ margin: "0 0 12px" }}>
-        A CSV with these columns. Spelling matters here, because the registry is the one file
-        nothing else can correct for you.
+        Upload the Census Bureau&rsquo;s government units file exactly as it comes out of the
+        Individual Unit File zip — <code>Fin_PID_2022.txt</code> — and it is read as published,
+        with no converting first. A CSV with the columns below works too.
       </p>
 
       <div className="scroll">
@@ -39,7 +40,7 @@ export function RegistryForm() {
       <p className="hint field-hint" id="registry-file-hint">
         Uploading again updates governments already here rather than doubling them.
       </p>
-      <input aria-describedby="registry-file-hint" id="registry-file" type="file" name="file" accept=".csv,text/csv" required />
+      <input aria-describedby="registry-file-hint" id="registry-file" type="file" name="file" accept=".csv,.txt,text/csv,text/plain" required />
 
       {message ? (
         <p className="problem" role="status">

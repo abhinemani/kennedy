@@ -3,17 +3,23 @@
 import { useActionState, useState } from "react";
 import { stageContacts } from "../actions";
 import { Field, describedBy } from "@/app/field";
+import { ROLES } from "@/core/lists";
+
+const ROLE_CHOICES = ROLES;
 
 // The fields we can fill from their file. Nothing here is guessed from a column name: the
 // operator points each one at a column, because a wrong guess imports the wrong thing quietly.
 const FIELDS: { key: string; label: string; hint: string; required?: boolean }[] = [
   { key: "email", label: "Email address", hint: "Needed. This is how a contact is identified.", required: true },
-  { key: "full_name", label: "Full name", hint: "Optional." },
+  { key: "first_name", label: "First name", hint: "Suppliers usually split the name in two." },
+  { key: "last_name", label: "Last name", hint: "Joined with the first name if there is no full name column." },
+  { key: "full_name", label: "Full name", hint: "Only if their file has one column for the whole name." },
   { key: "title", label: "Job title", hint: "Optional, but useful: titles vary wildly." },
-  { key: "role", label: "Role", hint: "One of our list names, if their file has one." },
+  { key: "role", label: "Role", hint: "Their own label is fine. Leave it if you set one role for the whole file below." },
   { key: "entity_name", label: "Government name", hint: "What their file calls the city or county." },
   { key: "state", label: "State", hint: "Two letters, or the full name." },
   { key: "entity_type", label: "Government type", hint: "city, county, township, and so on." },
+  { key: "county", label: "County the government is in", hint: "Over a thousand township names repeat inside one state; this is what tells them apart." },
   { key: "geoid", label: "Census identifier", hint: "Optional, and the most reliable match there is." },
   { key: "phone", label: "Phone", hint: "Optional." },
 ];
@@ -116,6 +122,21 @@ export function ImportForm({ savedProfiles }: { savedProfiles: Profile[] }) {
               </Field>
             </div>
           ))}
+
+          <Field
+            id="file_role"
+            label="One role for everyone in this file"
+            hint="Suppliers ship one file per list, so this is usually simpler and more reliable than mapping their role column."
+          >
+            <select id="file_role" name="file_role" defaultValue="" {...describedBy("file_role", "hint")}>
+              <option value="">Work it out from the role column</option>
+              {ROLE_CHOICES.map((r) => (
+                <option key={r.key} value={r.key}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </Field>
 
           <Field
             id="profile_name"

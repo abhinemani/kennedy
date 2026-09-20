@@ -8,7 +8,7 @@
 import type { Study } from "./study-schema";
 import type { AnalysisResponse, Coverage, MetricEstimate } from "./analysis";
 import type { MoeKind } from "./weights";
-import { excluded, included } from "./analysis";
+import { excluded, included, UNDER_REPRESENTED_WEIGHT } from "./analysis";
 
 export type MethodsInput = {
   study: Study;
@@ -116,17 +116,20 @@ export function methodsNote(input: MethodsInput): string {
     `${n(keep.length)} responses are included${rate === null ? "" : `, a response rate of ${round(rate)} percent of those emailed`}.`,
   );
   say();
-  say("| Population band | Governments in frame | Target | Responses | Weight |");
-  say("|---|---|---|---|---|");
+  say("| Population band | Governments in frame | Contacts drawn | Responses | Response rate | Weight |");
+  say("|---|---|---|---|---|---|");
   for (const c of input.coverage) {
-    say(`| ${c.label} | ${n(c.frame)} | ${n(c.target)} | ${n(c.responses)} | ${round(c.weight, 2)} |`);
+    const rate = c.responseRate === null ? "—" : `${round(c.responseRate * 100)}%`;
+    say(`| ${c.label} | ${n(c.frame)} | ${n(c.drawn)} | ${n(c.responses)} | ${rate} | ${round(c.weight, 2)} |`);
   }
   const under = input.coverage.filter((c) => c.under);
   if (under.length) {
     say();
     say(
-      `Under-represented relative to target: ${under.map((c) => c.label).join(", ")}. ` +
-        `Weighting corrects for this, at the cost of a larger margin of error.`,
+      `Under-represented among respondents: ${under.map((c) => c.label).join(", ")}. ` +
+        `Weighting corrects for this, at the cost of a larger margin of error. A band is named ` +
+        `here when its weight reaches ${UNDER_REPRESENTED_WEIGHT}, meaning each of its responses ` +
+        `is standing in for half again as many governments as an average one.`,
     );
   }
   say();

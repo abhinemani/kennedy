@@ -1,7 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { canContinue, checkPlausible, nextQuestion, previousQuestion, visibleQuestions } from "@/core/flow";
+import { canContinue, checkPlausible, nextQuestion, previousQuestion, visibleQuestions, wantsFollowup } from "@/core/flow";
+import { followupQuestion } from "@/core/followup";
+import { whyUnavailable } from "@/core/engines";
+import { followupFor, recordFollowup, saveFollowupAnswer } from "@/db/queries/followup";
+import { generate, modelAvailability } from "@/lib/model";
 import { qualityFlags } from "@/core/quality";
 import {
   answersFor, joinPanel, linkFor, markComplete, medianDurationSeconds,
@@ -92,7 +96,61 @@ export async function answerQuestion(formData: FormData): Promise<void> {
     await saveAnswer(response.id, confirmedKey(qid), true, false);
   }
 
+  // After an open answer worth following up, one question written in response to it.
+  if (wantsFollowup(link.study, q, value) && !whyUnavailable(link.study.engine, "ai_followup")) {
+    const asked = await askFollowup(response.id, q.id, q.text, String(value), q.type === "open" ? q.fallback : undefined);
+    if (asked) redirect(`/s/${token}/q/${qid}/followup`);
+  }
+
   const after = nextQuestion(link.study, given, scope, qid);
+  redirect(after ? `/s/${token}/q/${after.id}` : `/s/${token}/done`);
+}
+
+/**
+ * Generates and logs the follow-up. Returns false when there is nothing to ask, so the survey
+ * simply carries on: a respondent never waits on this, and never sees it fail.
+ */
+async function askFollowup(
+  responseId: string,
+  questionId: string,
+  questionText: string,
+  answerText: string,
+  fallback: string | undefined,
+): Promise<boolean> {
+  const already = await followupFor(responseId, questionId);
+  if (already) return true;
+  if (!fallback) return false;
+
+  const model = modelAvailability();
+  if (!model.available) {
+    // No key, so the scripted question stands in. It is still logged as a fallback.
+    await recordFollowup(responseId, questionId, fallback, null, true);
+    return true;
+  }
+
+  const result = await followupQuestion(questionText, answerText, fallback, generate);
+  await recordFollowup(responseId, questionId, result.question, model.model, result.fallbackUsed);
+  return true;
+}
+
+/** The answer to the follow-up, or a skip. Either way the survey moves on. */
+export async function answerFollowup(formData: FormData): Promise<void> {
+  const token = String(formData.get("token") ?? "");
+  const qid = String(formData.get("qid") ?? "");
+  const link = await guard(token);
+
+  const response = await responseFor(link.studyContactId);
+  if (!response) redirect(`/s/${token}`);
+
+  const followup = await followupFor(response.id, qid);
+  if (followup) {
+    const said = String(formData.get("value") ?? "").trim().slice(0, 2000);
+    await saveFollowupAnswer(followup.id, said || null);
+  }
+
+  const stored = await answersFor(response.id);
+  const scope = linkScope(link.attributes);
+  const after = nextQuestion(link.study, respondentAnswers(stored), scope, qid);
   redirect(after ? `/s/${token}/q/${after.id}` : `/s/${token}/done`);
 }
 

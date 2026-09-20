@@ -153,18 +153,30 @@ export type Funnel = {
 export type Coverage = {
   key: string;
   label: string;
+  /** Governments of this size in the registry: the denominator for weighting. */
   frame: number;
-  target: number;
+  /** Contacts drawn into the study for this band. The study file's target is this, not completes. */
+  drawn: number;
   responses: number;
+  responseRate: number | null;
   weight: number | null;
-  /** Under-responding compared with the target, so the operator can push there. */
+  /** Under-represented among respondents, which is what the weight is correcting for. */
   under: boolean;
 };
+
+/**
+ * A band is flagged when it is under-represented among the people who answered, which is
+ * exactly what a weight above one means. It is deliberately not "fewer responses than the
+ * target": the study file's target is how many contacts to draw, not how many completes to
+ * expect, and at a realistic response rate that comparison would flag every band forever.
+ */
+export const UNDER_REPRESENTED_WEIGHT = 1.5;
 
 export function coverage(
   study: Study,
   rows: AnalysisResponse[],
   frame: Record<string, number>,
+  drawn: Record<string, number> = {},
   weightCap = 5,
 ): Coverage[] {
   const keep = included(rows);
@@ -173,16 +185,17 @@ export function coverage(
 
   return study.sample.strata.bands.map((band) => {
     const responses = keep.filter((r) => r.stratumKey === band.key).length;
-    // A stratum is flagged when it has under two thirds of the responses its target implies.
-    const share = band.target === 0 ? 1 : responses / band.target;
+    const drawnHere = drawn[band.key] ?? 0;
+    const weight = weights[band.key] ?? null;
     return {
       key: band.key,
       label: band.label,
       frame: frame[band.key] ?? 0,
-      target: band.target,
+      drawn: drawnHere,
       responses,
-      weight: weights[band.key] ?? null,
-      under: share < 0.667,
+      responseRate: drawnHere === 0 ? null : responses / drawnHere,
+      weight,
+      under: weight !== null && weight >= UNDER_REPRESENTED_WEIGHT,
     };
   });
 }

@@ -6,6 +6,7 @@ import {
 } from "@/db/schema";
 import { normalizeEmail, normalizeName, normalizeState, normalizeType, resolveEntity, type RegistryEntity } from "@/core/resolve";
 import { isRole, type RoleKey } from "@/core/lists";
+import { roleFromSupplier } from "@/core/supplier-roles";
 import type { Row } from "@/core/csv";
 
 export type EntityRow = typeof entities.$inferSelect;
@@ -17,14 +18,17 @@ export type RegistryUpload = { added: number; updated: number; skipped: { line: 
 const ENTITY_TYPES = ["city", "county", "township", "special_district", "school_district", "state_agency"] as const;
 type EntityType = (typeof ENTITY_TYPES)[number];
 
+/**
+ * Load the registry.
+ *
+ * The Census file is 90,000 governments. One statement per row would be 90,000 round trips:
+ * minutes of the operator watching a spinner, and on a serverless host a request that never
+ * finishes. Rows that carry a Census identifier are upserted in bulk against it; the rest,
+ * which come from smaller hand-made CSVs, fall back to matching on state, type and name.
+ */
 export async function loadRegistry(rows: Row[]): Promise<RegistryUpload> {
   const skipped: { line: number; reason: string }[] = [];
-  let added = 0;
-  let updated = 0;
-
-  const existing = await db().select().from(entities);
-  const byGeoid = new Map(existing.filter((e) => e.geoid).map((e) => [e.geoid!, e]));
-  const byKey = new Map(existing.map((e) => [entityKey(e.state, e.type, e.name), e]));
+  const clean: { line: number; values: typeof entities.$inferInsert }[] = [];
 
   for (const [index, row] of rows.entries()) {
     const line = index + 2;
@@ -36,28 +40,81 @@ export async function loadRegistry(rows: Row[]): Promise<RegistryUpload> {
     if (state.length !== 2) { skipped.push({ line, reason: "No state." }); continue; }
     if (!type) { skipped.push({ line, reason: `Government type "${row.type ?? ""}" is not one we know.` }); continue; }
 
-    const population = toInt(row.population);
-    const annualBudget = toInt(row.annual_budget);
-    const geoid = (row.geoid ?? "").trim() || null;
-    const emailDomain = (row.email_domain ?? "").trim().toLowerCase() || null;
+    clean.push({
+      line,
+      values: {
+        geoid: (row.geoid ?? "").trim() || null,
+        name,
+        state,
+        type,
+        population: toInt(row.population),
+        annualBudget: toInt(row.annual_budget),
+        county: (row.county ?? "").trim() || null,
+        emailDomain: (row.email_domain ?? "").trim().toLowerCase() || null,
+        source: "registry_upload",
+      },
+    });
+  }
 
-    const found = (geoid ? byGeoid.get(geoid) : undefined) ?? byKey.get(entityKey(state, type, name));
+  const withGeoid = clean.filter((c) => c.values.geoid);
+  const withoutGeoid = clean.filter((c) => !c.values.geoid);
 
-    if (found) {
-      await db().update(entities)
-        .set({ name, state, type, population, annualBudget, emailDomain, geoid: geoid ?? found.geoid, updatedAt: new Date() })
-        .where(eq(entities.id, found.id));
-      updated += 1;
-    } else {
-      const inserted = await db().insert(entities)
-        .values({ geoid, name, state, type, population, annualBudget, emailDomain, source: "registry_upload" })
-        .returning();
-      const row0 = inserted[0];
-      if (row0) {
-        if (geoid) byGeoid.set(geoid, row0);
-        byKey.set(entityKey(state, type, name), row0);
+  let added = 0;
+  let updated = 0;
+
+  if (withGeoid.length) {
+    const ids = withGeoid.map((c) => String(c.values.geoid));
+    const known = new Set<string>();
+    for (let i = 0; i < ids.length; i += 1000) {
+      const rowsBack = await db()
+        .select({ geoid: entities.geoid })
+        .from(entities)
+        .where(inArray(entities.geoid, ids.slice(i, i + 1000)));
+      for (const r of rowsBack) if (r.geoid) known.add(r.geoid);
+    }
+
+    for (let i = 0; i < withGeoid.length; i += 500) {
+      const chunk = withGeoid.slice(i, i + 500);
+      await db()
+        .insert(entities)
+        .values(chunk.map((c) => c.values))
+        .onConflictDoUpdate({
+          target: entities.geoid,
+          set: {
+            name: sql`excluded.name`,
+            state: sql`excluded.state`,
+            type: sql`excluded.type`,
+            population: sql`excluded.population`,
+            annualBudget: sql`excluded.annual_budget`,
+            county: sql`coalesce(excluded.county, ${entities.county})`,
+            emailDomain: sql`coalesce(excluded.email_domain, ${entities.emailDomain})`,
+            updatedAt: new Date(),
+          },
+        });
+      for (const c of chunk) {
+        if (known.has(String(c.values.geoid))) updated += 1;
+        else added += 1;
       }
-      added += 1;
+    }
+  }
+
+  if (withoutGeoid.length) {
+    const existing = await db().select().from(entities);
+    const byKey = new Map(existing.map((e) => [entityKey(e.state, e.type, e.name), e]));
+
+    for (const c of withoutGeoid) {
+      const key = entityKey(String(c.values.state), String(c.values.type), String(c.values.name));
+      const found = byKey.get(key);
+      if (found) {
+        await db().update(entities)
+          .set({ ...c.values, geoid: found.geoid, updatedAt: new Date() })
+          .where(eq(entities.id, found.id));
+        updated += 1;
+      } else {
+        const inserted = await db().insert(entities).values(c.values).returning();
+        if (inserted[0]) byKey.set(key, inserted[0]);
+        added += 1;
+      }
     }
   }
 
@@ -129,7 +186,7 @@ export async function judgeBatch(batch: string): Promise<{ rows: Judged[]; count
   const staged = await stagedRows(batch);
   const registry = await db().select().from(entities);
   const slim: RegistryEntity[] = registry.map((e) => ({
-    id: e.id, name: e.name, state: e.state, type: e.type, population: e.population,
+    id: e.id, name: e.name, state: e.state, type: e.type, population: e.population, county: e.county,
   }));
 
   const emails = staged.map((s) => normalizeEmail(s.raw.email ?? "")).filter(Boolean);
@@ -153,7 +210,13 @@ export async function judgeBatch(batch: string): Promise<{ rows: Judged[]; count
     }
 
     const resolution = resolveEntity(
-      { geoid: s.raw.geoid, entityName: s.raw.entity_name ?? "", state: s.raw.state ?? "", type: s.raw.entity_type },
+      {
+        geoid: s.raw.geoid,
+        entityName: s.raw.entity_name ?? "",
+        state: s.raw.state ?? "",
+        type: s.raw.entity_type,
+        county: s.raw.county,
+      },
       slim,
     );
     if (resolution.kind === "matched") return { ...s, verdict: "ready", note: `Matched ${resolution.entity.name}.` };
@@ -185,7 +248,7 @@ export async function commitBatch(
   const { rows } = await judgeBatch(batch);
   const registry = await db().select().from(entities);
   const slim: RegistryEntity[] = registry.map((e) => ({
-    id: e.id, name: e.name, state: e.state, type: e.type, population: e.population,
+    id: e.id, name: e.name, state: e.state, type: e.type, population: e.population, county: e.county,
   }));
 
   const list = (
@@ -198,20 +261,26 @@ export async function commitBatch(
       row.resolvedEntityId ??
       (() => {
         const r = resolveEntity(
-          { geoid: row.raw.geoid, entityName: row.raw.entity_name ?? "", state: row.raw.state ?? "", type: row.raw.entity_type },
+          {
+            geoid: row.raw.geoid,
+            entityName: row.raw.entity_name ?? "",
+            state: row.raw.state ?? "",
+            type: row.raw.entity_type,
+            county: row.raw.county,
+          },
           slim,
         );
         return r.kind === "matched" ? r.entity.id : null;
       })();
     if (!entityId) continue;
 
-    const role = (row.raw.role ?? "").trim();
+    const role = roleFromSupplier(row.raw.role ?? "");
     const inserted = await db().insert(contacts)
       .values({
         entityId,
         fullName: row.raw.full_name || null,
         title: row.raw.title || null,
-        role: (isRole(role) ? role : "other") as RoleKey,
+        role,
         email: normalizeEmail(row.raw.email ?? ""),
         phone: row.raw.phone || null,
         source,
@@ -291,13 +360,12 @@ export async function matchReviewRow(rowId: string, entityId: string, source: st
   const email = normalizeEmail(raw.email ?? "");
   if (!email) return false;
 
-  const role = (raw.role ?? "").trim();
   const inserted = await db().insert(contacts)
     .values({
       entityId,
       fullName: raw.full_name || null,
       title: raw.title || null,
-      role: (isRole(role) ? role : "other") as RoleKey,
+      role: roleFromSupplier(raw.role ?? ""),
       email,
       phone: raw.phone || null,
       source,

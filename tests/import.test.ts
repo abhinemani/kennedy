@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyMapping, missingColumns, parseCsv, toCsv } from "../src/core/csv";
-import { looksLikeEmail, normalizeEmail, normalizeName, normalizeState, normalizeType, resolveEntity, type RegistryEntity } from "../src/core/resolve";
+import { designatorOf, looksLikeEmail, normalizeEmail, normalizeName, normalizeState, normalizeType, resolveEntity, type RegistryEntity } from "../src/core/resolve";
 
 describe("reading a CSV a spreadsheet produced", () => {
   it("reads a plain file", () => {
@@ -152,5 +152,63 @@ describe("emails", () => {
     expect(looksLikeEmail("clerk@localhost")).toBe(false);
     expect(looksLikeEmail("not an email")).toBe(false);
     expect(looksLikeEmail("")).toBe(false);
+  });
+});
+
+describe("telling apart governments that share a name", () => {
+  // Both of these are real shapes from the Census file and a Power Almanac export.
+  const townships: RegistryEntity[] = [
+    { id: "a", name: "Center Township", state: "IN", type: "township", population: 4_000, county: "Marion" },
+    { id: "b", name: "Center Township", state: "IN", type: "township", population: 2_100, county: "Delaware" },
+    { id: "c", name: "Center Township", state: "IN", type: "township", population: 900, county: "Howard" },
+  ];
+
+  it("uses the county, because over a thousand township names repeat inside one state", () => {
+    const r = resolveEntity(
+      { entityName: "Center Township", state: "IN", type: "township", county: "Delaware" },
+      townships,
+    );
+    if (r.kind !== "matched") throw new Error(`expected a match, got ${r.kind}`);
+    expect(r.entity.id).toBe("b");
+  });
+
+  it("tolerates the county being written with or without the word county", () => {
+    const r = resolveEntity(
+      { entityName: "Center Township", state: "IN", type: "township", county: "Marion County" },
+      townships,
+    );
+    if (r.kind !== "matched") throw new Error("expected a match");
+    expect(r.entity.id).toBe("a");
+  });
+
+  it("still asks rather than guessing when the county does not help", () => {
+    expect(resolveEntity({ entityName: "Center Township", state: "IN", type: "township" }, townships).kind)
+      .toBe("ambiguous");
+    expect(resolveEntity(
+      { entityName: "Center Township", state: "IN", type: "township", county: "Nowhere" },
+      townships,
+    ).kind).toBe("ambiguous");
+  });
+
+  const waukesha: RegistryEntity[] = [
+    { id: "city", name: "Waukesha City", state: "WI", type: "city", population: 71_000, county: "Waukesha" },
+    { id: "village", name: "Waukesha Village", state: "WI", type: "city", population: 8_800, county: "Waukesha" },
+  ];
+
+  it("keeps a village apart from the city beside it, which normalising alone loses", () => {
+    const asCity = resolveEntity({ entityName: "City of Waukesha", state: "WI", type: "City" }, waukesha);
+    if (asCity.kind !== "matched") throw new Error(`expected a match, got ${asCity.kind}`);
+    expect(asCity.entity.id).toBe("city");
+
+    const asVillage = resolveEntity({ entityName: "Village of Waukesha", state: "WI", type: "Village" }, waukesha);
+    if (asVillage.kind !== "matched") throw new Error("expected a match");
+    expect(asVillage.entity.id).toBe("village");
+  });
+
+  it("finds the word wherever the name puts it", () => {
+    expect(designatorOf("City of Ann Arbor")).toBe("city");
+    expect(designatorOf("ANN ARBOR CITY")).toBe("city");
+    expect(designatorOf("Township of Franklin")).toBe("township");
+    expect(designatorOf("Somewhere")).toBeNull();
   });
 });

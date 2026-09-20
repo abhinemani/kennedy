@@ -17,6 +17,9 @@ export const reviewStatus = pgEnum("review_status", ["pending", "included", "exc
 export const entities = pgTable("entities", {
   id: id(), geoid: text("geoid").unique(), name: text("name").notNull(), state: text("state").notNull(),
   type: entityType("type").notNull(), population: integer("population"), annualBudget: integer("annual_budget"),
+  // The county a government sits in. Over a thousand township names repeat inside a single
+  // state, and this is the only thing that tells them apart.
+  county: text("county"),
   emailDomain: text("email_domain"), source: text("source"), ...stamps,
 }, (t) => ({ byState: index("entities_state_idx").on(t.state, t.type) }));
 

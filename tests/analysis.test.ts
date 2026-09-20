@@ -157,16 +157,40 @@ describe("shares of a closed question", () => {
 });
 
 describe("coverage", () => {
-  it("flags a band that is answering well below its target", () => {
-    const rows = [...many(60, { stratumKey: "10k_50k" }), ...many(2, { stratumKey: "over_250k" })];
-    const bands = coverage(study, rows, FRAME);
-    expect(bands.find((b) => b.key === "over_250k")?.under).toBe(true);
+  const DRAWN = { under_10k: 2600, "10k_50k": 2400, "50k_250k": 1100, over_250k: 300 };
+
+  it("flags a band that is under-represented among the people who answered", () => {
+    // under_10k is two thirds of the frame but a third of the responses, so it weighs heavily.
+    const rows = [...many(20, { stratumKey: "under_10k" }), ...many(40, { stratumKey: "10k_50k" })];
+    const bands = coverage(study, rows, FRAME, DRAWN);
+    expect(bands.find((b) => b.key === "under_10k")?.under).toBe(true);
+    expect(bands.find((b) => b.key === "10k_50k")?.under).toBe(false);
   });
 
-  it("does not flag a band that is close enough to its target", () => {
-    const target = study.sample.strata.bands.find((b) => b.key === "over_250k")!.target;
-    const rows = many(target, { stratumKey: "over_250k" });
-    expect(coverage(study, rows, FRAME).find((b) => b.key === "over_250k")?.under).toBe(false);
+  it("does not flag a band merely for having fewer responses than contacts drawn", () => {
+    // Every band answers in proportion to the frame at a realistic rate. Nothing is wrong
+    // here, and the old rule would have flagged all four forever.
+    const total = 20_000 + 8_000 + 1_500 + 300;
+    const rows = [
+      ...many(Math.round((20_000 / total) * 200), { stratumKey: "under_10k" }),
+      ...many(Math.round((8_000 / total) * 200), { stratumKey: "10k_50k" }),
+      ...many(Math.round((1_500 / total) * 200), { stratumKey: "50k_250k" }),
+      ...many(Math.round((300 / total) * 200), { stratumKey: "over_250k" }),
+    ];
+    const bands = coverage(study, rows, FRAME, DRAWN);
+    expect(bands.filter((b) => b.under)).toEqual([]);
+    expect(bands.every((b) => b.responses < b.drawn)).toBe(true);
+  });
+
+  it("reports the response rate against contacts drawn, not against the frame", () => {
+    const rows = many(120, { stratumKey: "10k_50k" });
+    const band = coverage(study, rows, FRAME, DRAWN).find((b) => b.key === "10k_50k");
+    expect(band?.drawn).toBe(2400);
+    expect(band?.responseRate).toBeCloseTo(120 / 2400, 6);
+  });
+
+  it("has no rate to report before anything is drawn", () => {
+    expect(coverage(study, many(5), FRAME).find((b) => b.key === "10k_50k")?.responseRate).toBeNull();
   });
 });
 
@@ -189,7 +213,7 @@ describe("the methods note", () => {
       ...base,
       ...extra,
       rows,
-      coverage: coverage(study, rows, FRAME),
+      coverage: coverage(study, rows, FRAME, { under_10k: 2600, "10k_50k": 2400, "50k_250k": 1100, over_250k: 300 }),
       estimates: metricEstimates(study, rows, FRAME),
     });
 
@@ -249,11 +273,19 @@ describe("the methods note", () => {
     expect(note).toMatch(/±[\d,.]+/);
   });
 
-  it("names the under-represented bands", () => {
-    const rows = [...many(60, { stratumKey: "10k_50k" }), ...many(1, { stratumKey: "over_250k" })];
+  it("names the under-represented bands, and says what that means", () => {
+    const rows = [...many(60, { stratumKey: "10k_50k" }), ...many(1, { stratumKey: "under_10k" })];
     const note = noteFor(rows);
-    expect(note).toContain("Under-represented relative to target");
-    expect(note).toContain("Over 250,000");
+    expect(note).toContain("Under-represented among respondents");
+    expect(note).toContain("Under 10,000");
+    expect(note).toContain("standing in for half again as many governments");
+  });
+
+  it("shows contacts drawn and a response rate per band, not a target", () => {
+    const note = noteFor(many(60, { stratumKey: "10k_50k" }));
+    expect(note).toContain("Contacts drawn");
+    expect(note).toContain("Response rate");
+    expect(note).not.toContain("| Target |");
   });
 
   it("reports the coding agreement when open text has been coded", () => {

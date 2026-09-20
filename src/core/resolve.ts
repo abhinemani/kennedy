@@ -11,6 +11,7 @@ export type RegistryEntity = {
   state: string;
   type: string;
   population: number | null;
+  county?: string | null;
 };
 
 const LEADING = /^(city|town|township|village|borough|county|charter township|municipality) of\s+/i;
@@ -30,6 +31,13 @@ export function normalizeName(raw: string): string {
   return name.trim();
 }
 
+/**
+ * What a supplier calls a kind of government, and what we call it.
+ *
+ * The entries past the obvious ones are the ones a real Power Almanac export actually
+ * contains: consolidated city-counties are written half a dozen ways and every one of them
+ * would otherwise land a row in the review queue.
+ */
 export const TYPE_SYNONYMS: Record<string, string> = {
   city: "city",
   town: "city",
@@ -48,6 +56,21 @@ export const TYPE_SYNONYMS: Record<string, string> = {
   district: "special_district",
   state: "state_agency",
   "state agency": "state_agency",
+  // A consolidated government is one place with one clerk, so it counts as a city.
+  "city and county": "city",
+  "city county": "city",
+  "city-county": "city",
+  "city and borough": "city",
+  "city parish": "city",
+  "city-parish": "city",
+  "consolidated government": "city",
+  "unified government": "city",
+  "metropolitan government": "city",
+  "metro government": "city",
+  "urban county": "county",
+  "independent city": "city",
+  plantation: "city",
+  gore: "city",
 };
 
 export function normalizeType(raw: string): string | null {
@@ -69,7 +92,27 @@ export type IncomingRow = {
   entityName: string;
   state: string;
   type?: string;
+  county?: string;
 };
+
+const DESIGNATORS = ["city", "village", "town", "township", "borough", "county", "parish"] as const;
+type Designator = (typeof DESIGNATORS)[number];
+
+/**
+ * The word that says what kind of place this is, wherever it sits in the name.
+ *
+ * "City of Waukesha" and "WAUKESHA VILLAGE" are two different governments in one state, and
+ * normalising both to "waukesha" loses the only thing separating them. When several
+ * candidates share a normalised name, this is what breaks the tie.
+ */
+export function designatorOf(raw: string): Designator | null {
+  const words = raw.toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  for (const d of DESIGNATORS) if (words.includes(d)) return d;
+  return null;
+}
+
+const countyKey = (raw: string | null | undefined) =>
+  (raw ?? "").toLowerCase().replace(/\bcounty\b|\bparish\b/g, "").replace(/[^a-z]/g, "");
 
 /**
  * Exact identifiers win. Otherwise a row matches only when state, type and normalized name
@@ -99,6 +142,22 @@ export function resolveEntity(row: IncomingRow, registry: RegistryEntity[]): Res
     // Only narrow by type when it helps; a file that mislabels type should not lose a match
     // that is otherwise unambiguous.
     if (byType.length > 0) candidates = byType;
+  }
+
+  // Over a thousand township names repeat inside one state, so the county is what tells
+  // Center Township, Marion from Center Township, Delaware apart.
+  if (candidates.length > 1 && countyKey(row.county)) {
+    const sameCounty = candidates.filter((e) => countyKey(e.county) === countyKey(row.county));
+    if (sameCounty.length > 0) candidates = sameCounty;
+  }
+
+  // And a village is not the city beside it, whatever the normalised name says.
+  if (candidates.length > 1) {
+    const wanted = designatorOf(row.entityName);
+    if (wanted) {
+      const sameKind = candidates.filter((e) => designatorOf(e.name) === wanted);
+      if (sameKind.length > 0) candidates = sameKind;
+    }
   }
 
   if (candidates.length === 1) return { kind: "matched", entity: candidates[0]!, how: "name" };

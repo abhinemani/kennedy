@@ -86,8 +86,9 @@ export default async function Results({ params }: { params: Promise<{ slug: stri
             <tr>
               <th style={{ textAlign: "left" }}>Population band</th>
               <th>In frame</th>
-              <th>Target</th>
+              <th>Drawn</th>
               <th>Responses</th>
+              <th>Rate</th>
               <th>Weight</th>
             </tr>
           </thead>
@@ -96,19 +97,22 @@ export default async function Results({ params }: { params: Promise<{ slug: stri
               <tr key={c.key}>
                 <td style={{ textAlign: "left" }}>
                   {c.label}
-                  {c.under ? <span className="low"> — under-responding</span> : null}
+                  {c.under ? <span className="low"> — under-represented</span> : null}
                 </td>
                 <td>{n(c.frame)}</td>
-                <td>{n(c.target)}</td>
-                <td className={c.under ? "low" : undefined}>{n(c.responses)}</td>
-                <td>{round(c.weight, 2)}</td>
+                <td>{n(c.drawn)}</td>
+                <td>{n(c.responses)}</td>
+                <td>{c.responseRate === null ? "—" : `${round(c.responseRate * 100)}%`}</td>
+                <td className={c.under ? "low" : undefined}>{round(c.weight, 2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <p className="note">
-          A weight above one means that band is under-represented and each of its responses is
-          counting for more. The cap is {spec.quality.weight_cap}.
+          A weight above one means that band is under-represented among the people who answered,
+          so each of its responses counts for more. The cap is {spec.quality.weight_cap}. Drawn is
+          how many contacts went into the study for that band, which is what the rate is measured
+          against.
         </p>
       </div>
 

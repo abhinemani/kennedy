@@ -42,6 +42,13 @@ export default defineConfig({
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
     {
+      // The operator's real files, when they are on this machine. Skips itself otherwise,
+      // and runs on its own because it loads the whole country into the registry.
+      name: "real-files",
+      testMatch: /real-files\.spec\.ts/,
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
+    {
       // The form editor. It writes the same file as the text view, so it runs last, after
       // everything that depends on the study file being what it started as.
       name: "edit",

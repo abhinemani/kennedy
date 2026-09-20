@@ -2,6 +2,7 @@ import { choiceShares, coverage, included, metricEstimates, type AnalysisRespons
 import { methodsNote } from "@/core/methods";
 import type { Study } from "@/core/study-schema";
 import { analysisRows, fieldingDates, frameByBand, funnel } from "@/db/queries/analysis";
+import { drawnSummary } from "@/db/queries/sample";
 import { touchesSoFar } from "@/db/queries/sending";
 import { alreadyDrawn, countEntities } from "@/db/queries/contacts";
 import { codingAgreement } from "@/db/queries/coding";
@@ -10,7 +11,7 @@ import { codingAgreement } from "@/db/queries/coding";
 export async function analyse(study: Study, studyId: string) {
   const bands = study.sample.strata.bands.map((b) => ({ key: b.key, max: b.max }));
 
-  const [rows, frame, counts, drawn, touches, dates, frameTotal, agreement] = await Promise.all([
+  const [rows, frame, counts, drawn, touches, dates, frameTotal, agreement, perBand] = await Promise.all([
     analysisRows(studyId),
     frameByBand(bands),
     funnel(studyId),
@@ -19,7 +20,13 @@ export async function analyse(study: Study, studyId: string) {
     fieldingDates(studyId),
     countEntities(),
     codingAgreement(studyId).catch(() => null),
+    drawnSummary(studyId).catch(() => []),
   ]);
+
+  // How many contacts were drawn into each band, which is what a response rate is measured
+  // against. The study file's per-band target is this number, not a number of completes.
+  const drawnByBand: Record<string, number> = {};
+  for (const row of perBand) drawnByBand[row.stratumKey] = row.n;
 
   const cap = study.quality.weight_cap;
   return {
@@ -31,7 +38,7 @@ export async function analyse(study: Study, studyId: string) {
     emailed: touches.reduce((n, t) => n + t.n, 0),
     fieldedFrom: dates.from,
     fieldedTo: dates.to,
-    coverage: coverage(study, rows, frame, cap),
+    coverage: coverage(study, rows, frame, drawnByBand, cap),
     estimates: metricEstimates(study, rows, frame, cap),
     shares: choiceShares(study, rows, frame, cap),
     included: included(rows),
