@@ -49,11 +49,19 @@ export default defineConfig({
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
     {
-      // The form editor. It writes the same file as the text view, so it runs last, after
+      // The form editor. It writes the same file as the text view, so it runs after
       // everything that depends on the study file being what it started as.
       name: "edit",
       testMatch: /edit\.spec\.ts/,
       dependencies: ["interviews"],
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
+    {
+      // Sample data. It adds contacts every other spec would otherwise draw, so it runs
+      // last, and it removes everything it loaded before it finishes.
+      name: "sample-data",
+      testMatch: /sample-data\.spec\.ts/,
+      dependencies: ["edit"],
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
     {

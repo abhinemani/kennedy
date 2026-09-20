@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveSettings, testTheModel } from "../actions";
+import { loadSample, removeSample, saveSettings, testTheModel } from "../actions";
 import type { Settings } from "@/lib/settings";
 
 export function TestModelButton() {
@@ -97,5 +97,41 @@ export function SettingsForm({ current }: { current: Settings }) {
         </button>
       </div>
     </form>
+  );
+}
+
+export function SampleDataPanel({ loaded, counts }: { loaded: boolean; counts: { governments: number; contacts: number; responses: number } }) {
+  const [loadMessage, load, loading] = useActionState(loadSample, null);
+  const [removeMessage, remove, removing] = useActionState(removeSample, null);
+  const message = loadMessage ?? removeMessage;
+
+  return (
+    <div className="panel">
+      <p className="note" style={{ margin: "0 0 12px" }}>
+        {loaded
+          ? `Sample data is loaded: ${counts.governments.toLocaleString("en-US")} fake governments, ${counts.contacts.toLocaleString("en-US")} fake contacts, and a study called "Sample study (fake data)" with ${counts.responses.toLocaleString("en-US")} responses. Every record is marked, and removing it deletes only those.`
+          : "Fill every screen with obviously fake governments, people, a fielding study, responses, interviews and coded answers, so you can see the product before any real list is loaded. Nothing is emailed. Every record is marked as sample data and can be removed with one press."}
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {loaded ? (
+          <form action={remove}>
+            <button className="btn ghost" type="submit" disabled={removing}>
+              {removing ? "Removing…" : "Remove sample data"}
+            </button>
+          </form>
+        ) : (
+          <form action={load}>
+            <button className="btn" type="submit" disabled={loading}>
+              {loading ? "Loading…" : "Load sample data"}
+            </button>
+          </form>
+        )}
+      </div>
+      {message ? (
+        <p className="note" role="status">
+          {message}
+        </p>
+      ) : null}
+    </div>
   );
 }

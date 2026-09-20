@@ -25,10 +25,9 @@ export function StripPlot({
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
-        height="auto"
         role="img"
         aria-label={caption}
-        style={{ display: "block" }}
+        style={{ display: "block", height: "auto" }}
       >
         <line x1={PAD} y1={44} x2={W - PAD} y2={44} stroke="var(--line)" strokeWidth={1} />
         {peers.map((p, i) => (

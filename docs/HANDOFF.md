@@ -7,31 +7,27 @@ operator.
 ## In one paragraph
 
 Kennedy is built through Milestone 9 of 11, tested end to end, and deployed to Railway at
-`https://kennedy-production-ad97.up.railway.app`. The app runs there; **the Railway project is
-new and its database has not been set up yet**, so every page that needs data fails. The
-registry and contact import both work against the operator's real Census and Power Almanac
-files. Nothing has been emailed to anyone, and no real contact has ever been loaded into a
-deployed database.
+`https://kennedy-production-ad97.up.railway.app` with its database attached and its secrets
+set. The registry and contact import both work against the operator's real Census and Power
+Almanac files. Nothing has been emailed to anyone, and no real contact has ever been loaded
+into a deployed database.
 
 ## The state of the deployment
 
-The Railway project is new and only the app is on it. As of the last check:
+Set up on 2026-09-20 from the Railway dashboard: a Postgres service, `DATABASE_URL` on the
+Kennedy service as the reference `${{Postgres.DATABASE_URL}}`, `OPERATOR_PASSPHRASE`,
+`SESSION_SECRET`, `IP_HASH_SALT`, `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`. The setup
+checklist shows the database reachable and migrations current. Still to do there, all from the
+console: the survey link domain, the postal and reply-to addresses, and the registry upload
+(`Fin_PID_2022.txt` from inside the Census zip; the picker takes the text file, not the zip).
+`SEND_WEBHOOK_SECRET` is unset and only Milestone 4's delivery reports need it.
 
-- `/healthz` answers, and the public page and the console sign-in render.
-- Every page that queries the database returns the error page.
+One thing to watch: the first deploy served even though the migrate script exits non-zero
+without a database, which suggests Railway did not run the pre-deploy command from
+`railway.json`. Check the deploy log for "Migrations are current." after any schema change; if
+it is missing, set the pre-deploy command by hand in the service's Settings.
 
-What is missing there, in order:
-
-1. **A Postgres database in the project.** Railway dashboard, Create, Database, Add PostgreSQL.
-2. **`DATABASE_URL` on the Kennedy service** — the app's service, not the database's — set to
-   the reference `${{Postgres.DATABASE_URL}}`.
-3. **`OPERATOR_PASSPHRASE`, `SESSION_SECRET`, `IP_HASH_SALT`.** Sign-in works without a
-   database, so this is also how the setup checklist becomes readable.
-4. A redeploy. Railway does not restart on a variable change.
-5. Later: `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` (Milestones 5, 7, 8), and
-   `SEND_WEBHOOK_SECRET` (Milestone 4's delivery reports). None of them block the survey.
-
-`docs/DEPLOY.md` has all of this as numbered steps, plus what to check when a page fails.
+`docs/DEPLOY.md` has the numbered steps, plus what to check when a page fails.
 
 ## Done
 
@@ -71,9 +67,13 @@ the console's Interviews screen.
 **Milestone 9.** The form view of the study editor, writing the same file as the Advanced view.
 
 Outside the milestone list: the Census government units file is read as published, a
-dependency-free zip writer for the full backup, and error pages that fail kindly.
+dependency-free zip writer for the full backup, error pages that fail kindly, and **sample
+data**: Settings, Sample data, "Load sample data" fills every table with obviously fake,
+marked records (`src/core/sample-data.ts` generates them from the study file, deterministically;
+`src/db/queries/sample-data.ts` writes and removes them), and "Remove sample data" deletes
+exactly those. It exists so every screen can be seen full before a real list is loaded.
 
-262 unit tests and 82 end-to-end tests pass. Typecheck and build are clean.
+269 unit tests and 86 end-to-end tests pass. Typecheck and build are clean.
 
 ## Not done
 

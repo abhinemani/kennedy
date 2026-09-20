@@ -70,6 +70,18 @@ Two lines will still be amber after this, and that is expected:
 - **Postal address and reply-to** are typed into Settings whenever you have them. Nothing can
   be sent until they are there.
 
+## See it full before any real list exists
+
+Settings, Sample data, **Load sample data** fills every screen with obviously fake records: a
+few dozen governments whose names end in "(sample)", people whose surnames say what they are,
+a fielding study with responses, interviews, hand-raises and coded answers, and email
+addresses that end in `.sample.example`, a domain that cannot receive mail. Nothing is sent.
+It also fills any blank setting with a sample value, and only the blank ones.
+
+**Remove sample data** on the same screen deletes exactly those records and nothing else,
+so it is safe to press on the live deployment. Remove it before the first real draw: sample
+contacts would otherwise be eligible for a real study.
+
 ## Back up the database
 
 Railway's Postgres does not give you point-in-time restore the way a managed Postgres host

@@ -56,6 +56,7 @@ The same checklist lives permanently at Settings, Health.
 | Change settings | Settings. Addresses, send limits, contact-history window, breaker thresholds |
 | See what happened | Settings, Activity. A plain log of operator actions and system events |
 | Back up | Settings, Health, "Download full backup" (a zip of CSVs), in addition to the database host's own backups |
+| See the product full before any real list exists | Settings, Sample data, "Load sample data". Fake governments, people, a fielding study, responses, interviews and coded answers, all marked, all removed again by "Remove sample data" |
 
 ## The study editor
 

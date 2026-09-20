@@ -10,6 +10,8 @@ import { env } from "@/lib/env";
 import { DEFAULT_SETTINGS, readSettings, writeSettings } from "@/lib/settings";
 import { testModel } from "@/lib/model";
 import { hashIp } from "@/core/tokens";
+import { loadSampleData, removeSampleData } from "@/db/queries/sample-data";
+import { readTemplate } from "./studies/actions";
 
 async function callerKey(): Promise<string> {
   const h = await headers();
@@ -108,4 +110,51 @@ export async function testTheModel(_prev: string | null): Promise<string | null>
   return result.ok
     ? `The model answered. The AI follow-up has something to talk to.`
     : result.why;
+}
+
+/**
+ * Sample data. A complete fake dataset for every screen, loaded and removed from the console
+ * so seeing the product never needs a command (rule 10). Everything it writes is marked, and
+ * removal finds it by those marks and nothing else.
+ */
+export async function loadSample(_prev: string | null): Promise<string | null> {
+  if (!(await isSignedIn())) redirect("/console/login");
+
+  let template: string;
+  try {
+    template = await readTemplate("brandeis-records-2026");
+  } catch {
+    return "The worked example template is missing from this build, so there is nothing to base the sample study on.";
+  }
+
+  let result: Awaited<ReturnType<typeof loadSampleData>>;
+  try {
+    result = await loadSampleData(template);
+  } catch (err) {
+    await record("sample_data_failed", { message: err instanceof Error ? err.message : String(err) });
+    return "Could not load the sample data. The database did not finish the job. Press Remove sample data to clear what was written, then try again.";
+  }
+  if (!result.ok) return result.problem;
+
+  await record("sample_data_loaded", result.counts);
+  revalidatePath("/console");
+  revalidatePath("/console/settings");
+  return `Sample data loaded: ${result.counts.governments} fake governments, ${result.counts.contacts} fake contacts, and a fielding study with ${result.counts.responses} responses. Open Studies to look around.`;
+}
+
+export async function removeSample(_prev: string | null): Promise<string | null> {
+  if (!(await isSignedIn())) redirect("/console/login");
+
+  let counts: Awaited<ReturnType<typeof removeSampleData>>;
+  try {
+    counts = await removeSampleData();
+  } catch (err) {
+    await record("sample_data_remove_failed", { message: err instanceof Error ? err.message : String(err) });
+    return "Could not remove the sample data. The database did not finish the job. Try again; nothing real was touched.";
+  }
+
+  await record("sample_data_removed", counts);
+  revalidatePath("/console");
+  revalidatePath("/console/settings");
+  return "Sample data removed. Only records marked as sample data were deleted.";
 }

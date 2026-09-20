@@ -3,15 +3,20 @@ import { isSignedIn } from "@/lib/auth";
 import { readSettings } from "@/lib/settings";
 import { buildInfo } from "@/lib/env";
 import { checklist } from "@/lib/health-facts";
+import { sampleDataStatus } from "@/db/queries/sample-data";
 import { Nav } from "../nav";
-import { SettingsForm, TestModelButton } from "./form";
+import { SampleDataPanel, SettingsForm, TestModelButton } from "./form";
 import { endSession } from "../actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function Settings() {
   if (!(await isSignedIn())) redirect("/console/login");
-  const [current, checks] = await Promise.all([readSettings(), checklist()]);
+  const [current, checks, sample] = await Promise.all([
+    readSettings(),
+    checklist(),
+    sampleDataStatus().catch(() => ({ loaded: false, counts: { governments: 0, contacts: 0, responses: 0, messages: 0, interviews: 0 } })),
+  ]);
   const build = buildInfo();
 
   return (
@@ -45,6 +50,9 @@ export default async function Settings() {
           ))}
         </ul>
       </div>
+
+      <h2>Sample data</h2>
+      <SampleDataPanel loaded={sample.loaded} counts={sample.counts} />
 
       <h2>Session</h2>
       <form action={endSession}>
