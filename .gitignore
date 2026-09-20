@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+dist/
+.env
+.env.local
+.vercel
+test-results/
+playwright-report/
+.DS_Store

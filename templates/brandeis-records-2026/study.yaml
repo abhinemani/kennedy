@@ -1,0 +1,372 @@
+# Brandeis public records workload study, wave 1.
+# This file is the worked example the whole tool must support.
+# Copy marked DRAFT is for Abhi to edit before the pilot.
+
+slug: brandeis-records-2026
+name: Public records workload, fall 2026
+wave: 1
+engine: native
+features:
+  ai_followup: true     # smart survey: one AI follow-up on open answers
+  ai_interview: true    # a deeper AI conversation offered after the survey
+  benchmark: true
+  hand_raise: true
+  panel: true           # invite respondents to keep receiving benchmarks
+
+brand:
+  display_name: Local Government Records Study   # DRAFT: neutral research identity
+  sponsor_line: >-
+    Run by Abhi Nemani, former Chief Data Officer of Los Angeles, who is building software
+    for public records teams. This survey is research, not a sales pitch.
+  contact_email: CHANGE_ME
+  postal_address: CHANGE_ME
+
+# Why each question exists. Analysis and deck work read from this.
+evidence_map:
+  volume: Market and Problem slides. Shows request volume per 1,000 residents outside Washington.
+  trend: Evidence slide. Tests whether the Chicago growth curve holds nationally.
+  hours: Anatomy-of-a-request slide. Staff time per request.
+  people: Anatomy-of-a-request slide. How many people touch one request.
+  repeats: Pillars slide, the Answer pillar. Share of requests already answered before.
+  tool: Market slide. Incumbent footprint and the spreadsheet share.
+  satisfaction: Market slide. Openness to switching.
+  renewal: Growth slide. Timing of the sales window.
+  spend: Model slide. Current budget against labor-displaced pricing.
+  threshold: Model and Growth slides. Whether the land motion clears without an RFP.
+  litigation: Pillars slide, the Defend pillar.
+  story: Problem slide. Quotes and themes.
+  ai_comfort: Trust model slide. Acceptance of drafting with named human approval.
+  pilot hand-raise: Growth slide. Pipeline count.
+
+sample:
+  frame:
+    entity_types: [city, county, township]
+    min_population: 1000
+    roles: [clerk, records_officer, manager, attorney, it]
+  primary_roles: [clerk, records_officer]      # at least 70 percent of each stratum
+  strata:
+    by: population_band
+    bands:
+      - {key: under_10k,  label: "Under 10,000",       max: 9999,    target: 2600}
+      - {key: 10k_50k,    label: "10,000 to 50,000",   max: 49999,   target: 2400}
+      - {key: 50k_250k,   label: "50,000 to 250,000",  max: 249999,  target: 1100}
+      - {key: over_250k,  label: "Over 250,000",       max: null,    target: 300}
+  pilot_size: 50
+  contact_history_window_days: 90
+  seed: 20260921
+
+# The closed questions every way of responding asks first, so the numbers stay comparable.
+spine: [involvement, volume, hours, repeats, tool]
+
+# How people can respond. They choose how far to go.
+stages:
+  - id: survey
+    type: survey
+  - id: interview
+    type: interview
+    label: Talk it through with our AI interviewer (about 10 minutes)
+    invite:
+      max: 40
+      if:
+        any:
+          - {story: {answered: true}}
+          - {litigation: {equals: "yes"}}
+          - {ai_comfort: {less_than: 3}}
+    guide:
+      goal: >-
+        Understand where time and risk pile up in public records work, what staff have already
+        tried, and what they would need before trusting software with any of it.
+      hypotheses:
+        - A large share of requests repeat something already released.
+        - Redaction and email search are the main bottlenecks, more than intake.
+        - Staff accept AI drafting when a named person approves every release.
+        - Small purchases can be made without a formal bid.
+      topics:
+        - {id: hard_request, ask: "Walk me through the last request that was hard, step by step.", probe_for: "who touched it, how long each step took"}
+        - {id: time_sinks, ask: "Where does the time actually go on a typical request?", probe_for: "search, redaction, legal review, chasing colleagues"}
+        - {id: tried, ask: "What have you already tried to make this easier, and what happened?"}
+        - {id: trust, ask: "If software drafted a response for you to approve, what would you check before releasing it?"}
+        - {id: buying, ask: "When your office needs a new tool, how does the purchase actually get approved?"}
+      max_minutes: 12
+      max_turns: 14
+  - id: call
+    type: live
+    label: Talk with the researcher
+    scheduling_url: CHANGE_ME
+
+panel:
+  label: Keep me in the loop with benchmarks from future studies
+  promise: >-
+    A few short surveys a year, each with a comparison for places your size. We never share
+    your contact details, and you can leave at any time.
+
+link_attributes: [role, state, population, population_band, entity_type]
+
+intro:
+  title: Five minutes on how your office handles public records requests.
+  body: >-
+    This link was prepared for the {role_label} of a {state} {entity_type} of about
+    {population} people, so we can skip what we already know. When you finish, you will see
+    how your numbers compare with places your size.
+  not_me_label: That is not me
+
+questions:
+  - id: involvement
+    type: choice
+    text: Which best describes your part in handling public records requests?
+    options:
+      - {value: process,   label: I process them myself}
+      - {value: supervise, label: I supervise the people who do}
+      - {value: advise,    label: "I advise on them (legal, IT)"}
+      - {value: none,      label: I am not involved}
+    required: true
+
+  - id: referral
+    type: short_text
+    show_if: {involvement: {equals: none}}
+    text: Who in your government handles records requests? A title or email is plenty.
+    hint: Optional. We will only use it to send this survey once.
+    end_after: true          # thank them and finish; flag role_not_involved
+
+  - id: volume
+    type: number
+    text: About how many public records requests did your government receive last year?
+    hint: A rough count is fine.
+    allow_unknown: true
+    required: true
+    plausible:
+      metric: "volume / population * 1000"
+      min: 0.5
+      max: 150
+      confirm: "That works out to about {metric} requests per 1,000 residents. Is {volume} right?"
+
+  - id: trend
+    type: choice
+    text: Compared with three years ago, how many requests do you receive now?
+    options:
+      - {value: much_more, label: Many more}
+      - {value: more,      label: Somewhat more}
+      - {value: same,      label: About the same}
+      - {value: fewer,     label: Fewer}
+      - {value: unknown,   label: I don't know}
+
+  - id: hours
+    type: choice
+    text: How much staff time does a typical request take, start to finish?
+    options:
+      - {value: 0.5, label: Under 1 hour}
+      - {value: 2,   label: 1 to 3 hours}
+      - {value: 5,   label: 3 to 8 hours}
+      - {value: 10,  label: More than a day}
+    required: true
+
+  - id: people
+    type: choice
+    text: How many people usually touch one request before it closes?
+    options:
+      - {value: 1, label: Just one}
+      - {value: 2, label: Two or three}
+      - {value: 4, label: Four or five}
+      - {value: 6, label: Six or more}
+
+  - id: repeats
+    type: slider
+    text: What share of requests ask for something you have already released before?
+    min: 0
+    max: 100
+    step: 5
+    unit: "%"
+    default: 30
+
+  - id: tool
+    type: choice
+    text: What do you use to track requests today?
+    options:
+      - {value: manual,      label: Email and spreadsheets}
+      - {value: govqa,       label: GovQA}
+      - {value: nextrequest, label: NextRequest}
+      - {value: justfoia,    label: JustFOIA}
+      - {value: module,      label: A module in another system we own}
+      - {value: other,       label: Something else}
+    required: true
+
+  - id: satisfaction
+    type: scale
+    show_if: {tool: {not_in: [manual]}}
+    text: How well does that tool work for your team?
+    min: 1
+    max: 5
+    min_label: Poorly
+    max_label: Very well
+
+  - id: renewal
+    type: choice
+    show_if: {tool: {not_in: [manual]}}
+    text: When does that contract next come up for renewal?
+    options:
+      - {value: within_12, label: Within 12 months}
+      - {value: one_two,   label: In one to two years}
+      - {value: later,     label: Later than that}
+      - {value: unknown,   label: I don't know}
+
+  - id: spend
+    type: choice
+    text: About how much does your government spend each year on software for records requests?
+    options:
+      - {value: 0,       label: Nothing}
+      - {value: 2500,    label: "Under $5,000"}
+      - {value: 10000,   label: "$5,000 to $15,000"}
+      - {value: 30000,   label: "$15,000 to $50,000"}
+      - {value: 75000,   label: "Over $50,000"}
+      - {value: unknown, label: I don't know}
+
+  - id: threshold
+    type: choice
+    text: What is the largest software purchase your office can make without a formal bid or RFP?
+    options:
+      - {value: 5000,    label: "Under $5,000"}
+      - {value: 10000,   label: "$5,000 to $10,000"}
+      - {value: 25000,   label: "$10,000 to $25,000"}
+      - {value: 50000,   label: "$25,000 to $50,000"}
+      - {value: 100000,  label: "Over $50,000"}
+      - {value: unknown, label: I don't know}
+
+  - id: litigation
+    type: choice
+    text: In the past three years, has a records request led to a lawsuit, appeal, or penalty for your government?
+    options:
+      - {value: "yes",   label: "Yes"}
+      - {value: "no",    label: "No"}
+      - {value: unknown, label: I don't know or would prefer not to say}
+
+  - id: story
+    type: open
+    text: Think of the last request that went badly. What happened?
+    hint: >-
+      Optional. A few sentences is plenty. Your words stay anonymous unless you tell us otherwise.
+    followup: true
+    fallback: What would have had to be different for that request to go well?
+
+  - id: ai_comfort
+    type: scale
+    text: >-
+      How comfortable would you be with software drafting a response, if a named staff member
+      reviews and approves every release?
+    min: 1
+    max: 5
+    min_label: Not at all
+    max_label: Very
+    required: true
+
+  - id: ai_needs
+    type: open
+    show_if: {ai_comfort: {less_than: 4}}
+    text: What would you need to see before you trusted it?
+    hint: Optional.
+
+benchmark:
+  peer_group: population_band
+  min_real_peers: 10
+  seeds_note: Illustrative seed values. Replace with figures derived from Washington State reporting before the pilot.
+  metrics:
+    - id: requests_per_1000
+      formula: "volume / population * 1000"
+      headline:
+        above: Your office handles more requests than most places your size.
+        near:  Your office handles about as many requests as most places your size.
+        below: Your office handles fewer requests than most places your size.
+      near_band: 0.15
+      chart: strip
+    - id: hours_per_year
+      formula: "volume * hours"
+      sentence: "At roughly {hours} staff hours each, that is about {value} hours a year."
+    - id: repeat_hours
+      formula: "volume * hours * repeats / 100"
+      sentence: "You told us {repeats}% repeat something already released, which is around {value} of those hours."
+
+hand_raises:
+  - {id: report, label: Email me the full benchmark report when the study closes, default: true}
+  - {id: pilot,  label: I would like to hear about piloting a tool that reduces this workload, default: false}
+quote_permission:
+  label: You may quote my written answers with my title and state
+  default: false
+
+quality:
+  speeder_seconds: 60
+  weight_cap: 5
+  entity_role_order: [records_officer, clerk, manager, attorney, it]
+
+codebook:     # starting themes; expect to revise after the pilot
+  - {code: video,     label: Video and body camera redaction}
+  - {code: email,     label: Searching staff email}
+  - {code: repeat,    label: "The same requesters or requests, repeatedly"}
+  - {code: turnover,  label: Deadlines missed during staff turnover}
+  - {code: legal,     label: Fear of being sued over a mistake}
+  - {code: volume,    label: Sheer volume against a small staff}
+  - {code: other,     label: Something else}
+
+# DRAFT email copy. Plain text. {link}, {unsubscribe}, {first_name}, {entity_name},
+# {postal_address} are merge fields. One link per message.
+sequence:
+  - touch: 1
+    day: 0
+    subjects:
+      - How does {entity_name} compare on records requests?
+      - Five questions about public records workload
+    body: |
+      Hi {first_name},
+
+      I'm Abhi Nemani. I was Los Angeles's first Chief Data Officer, and I'm studying how
+      local governments keep up with public records requests.
+
+      Would you take a five-minute survey? When you finish, you'll see right away how
+      {entity_name}'s request volume and staff time compare with places your size.
+
+      {link}
+
+      Full disclosure: I'm building software in this area, which is why I want the facts
+      right. This is research, not a sales pitch, and your answers stay anonymous.
+
+      Thank you,
+      Abhi
+
+      {postal_address}
+      Don't want these emails? {unsubscribe}
+
+  - touch: 2
+    day: 4
+    subjects:
+      - "The benchmark for places your size"
+    body: |
+      Hi {first_name},
+
+      A quick follow-up. Clerks and records officers across the country are filling in a
+      five-minute survey on records request workload, and each one gets an instant
+      comparison with similar governments.
+
+      Here is your link again:
+      {link}
+
+      Thank you,
+      Abhi
+
+      {postal_address}
+      Don't want these emails? {unsubscribe}
+
+  - touch: 3
+    day: 9
+    subjects:
+      - Wrong person?
+    body: |
+      Hi {first_name},
+
+      Last note from me. If someone else at {entity_name} handles records requests, feel
+      free to forward this link to them. It will work for whoever opens it.
+
+      {link}
+
+      Thank you,
+      Abhi
+
+      {postal_address}
+      Don't want these emails? {unsubscribe}
