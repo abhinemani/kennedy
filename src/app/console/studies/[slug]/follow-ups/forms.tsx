@@ -43,8 +43,9 @@ export function QueueForm({
 
 export function PauseForm({ slug, paused, hot }: { slug: string; paused: boolean; hot: boolean }) {
   return (
-    <form action={paused ? resumeSending : pauseSending} className="panel" style={{ marginTop: 16 }}>
+    <form action={paused ? resumeSending : pauseSending} className="panel">
       <input type="hidden" name="slug" value={slug} />
+      <span className="label">{paused ? "Paused" : "Sending"}</span>
       <p className="note" style={{ margin: "0 0 12px" }}>
         {paused
           ? hot

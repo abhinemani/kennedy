@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { isSignedIn } from "@/lib/auth";
 import { countEntities, needsReviewCount, profiles, sweepAbandonedImports } from "@/db/queries/contacts";
-import { Nav } from "../../nav";
 import { ContactsNav } from "../nav";
 import { ImportForm } from "./form";
 
@@ -29,7 +28,6 @@ export default async function Import({
 
   return (
     <>
-      <Nav current="/console/contacts" />
       <ContactsNav current="/console/contacts/import" reviewCount={review} />
 
       <h1>Import contacts</h1>

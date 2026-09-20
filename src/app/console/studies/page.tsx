@@ -1,17 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
-import { listStudies, responseCounts } from "@/db/queries/studies";
-import { Nav } from "../nav";
+import { listStudies, responseCounts, versionsOf } from "@/db/queries/studies";
+import { STATUS_WORDS } from "./[slug]/words";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_WORDS: Record<string, string> = {
-  draft: "Draft",
-  pilot: "In pilot",
-  fielding: "Fielding",
-  closed: "Closed",
-};
+const n = (x: number) => x.toLocaleString("en-US");
 
 export default async function Studies() {
   if (!(await isSignedIn())) redirect("/console/login");
@@ -23,43 +18,53 @@ export default async function Studies() {
     studies = [];
   }
 
-  const withCounts = await Promise.all(
-    studies.map(async (s) => ({ study: s, counts: await responseCounts(s.id).catch(() => ({ started: 0, complete: 0 })) })),
+  const rows = await Promise.all(
+    studies.map(async (s) => ({
+      study: s,
+      counts: await responseCounts(s.id).catch(() => ({ started: 0, complete: 0 })),
+      versions: await versionsOf(s.id).catch(() => []),
+    })),
   );
 
   return (
     <>
-      <Nav current="/console/studies" />
-      <h1>Studies</h1>
-      <p className="sub">Each study is one question put to one audience.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <h1>Studies</h1>
+          <p className="sub">Each study is one question put to one audience.</p>
+        </div>
+        <Link className="btn" href="/console/studies/new">
+          New study
+        </Link>
+      </div>
 
       <div className="panel" style={{ marginTop: 16 }}>
-        {withCounts.length === 0 ? (
+        {rows.length === 0 ? (
           <p className="note" style={{ margin: 0 }}>
             No studies yet. Start one from a template.
           </p>
         ) : (
-          <ul className="rows">
-            {withCounts.map(({ study, counts }) => (
+          <ul className="index">
+            {rows.map(({ study, counts, versions }) => (
               <li key={study.id}>
-                <span>
-                  <Link href={`/console/studies/${study.slug}`}>{study.name}</Link>
-                  <span className="state"> — {STATUS_WORDS[study.status] ?? study.status}</span>
+                <Link className="primary" href={`/console/studies/${study.slug}`}>
+                  {study.name}
+                </Link>
+                <span className="meta">
+                  {versions.length > 0 ? `Version ${versions[0]?.version}` : "Never published"} ·{" "}
+                  {study.engine} engine · created{" "}
+                  {study.createdAt.toLocaleDateString("en-US", { dateStyle: "medium" })}
                 </span>
-                <span className="when">
-                  {counts.complete} complete of {counts.started} started
+                <span className="right">
+                  <span>
+                    {n(counts.complete)} complete of {n(counts.started)} started
+                  </span>
+                  <span className={`pill ${study.status}`}>{STATUS_WORDS[study.status] ?? study.status}</span>
                 </span>
               </li>
             ))}
           </ul>
         )}
-      </div>
-
-      <div className="nav">
-        <span />
-        <Link className="btn" href="/console/studies/new">
-          New study
-        </Link>
       </div>
     </>
   );

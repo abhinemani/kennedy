@@ -5,7 +5,6 @@ import { parseStudy } from "@/core/study-schema";
 import { formatMoe } from "@/core/methods";
 import { studyAndVersion, studyOf } from "@/db/queries/studies";
 import { analyse } from "@/lib/study-analysis";
-import { Nav } from "../../../nav";
 
 export const dynamic = "force-dynamic";
 
@@ -26,11 +25,10 @@ export default async function Results({ params }: { params: Promise<{ slug: stri
   if (!spec) {
     return (
       <>
-        <Nav current="/console/studies" />
         <h1>Results</h1>
         <p className="problem">
           The study file has problems, so its metrics cannot be read.{" "}
-          <Link href={`/console/studies/${slug}`}>Fix them on the study screen</Link>.
+          <Link href={`/console/studies/${slug}/file`}>Fix them in the study file</Link>.
         </p>
       </>
     );
@@ -52,10 +50,9 @@ export default async function Results({ params }: { params: Promise<{ slug: stri
 
   return (
     <>
-      <Nav current="/console/studies" />
       <h1>Results</h1>
       <p className="sub">
-        {study.name}. {n(a.included.length)} responses in the analysis
+        {n(a.included.length)} responses in the analysis
         {a.rows.length !== a.included.length
           ? `, ${n(a.rows.length - a.included.length)} excluded by review`
           : ""}

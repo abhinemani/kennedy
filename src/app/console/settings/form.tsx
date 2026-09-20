@@ -24,7 +24,7 @@ export function SettingsForm({ current }: { current: Settings }) {
   const [message, action, pending] = useActionState(saveSettings, null);
 
   return (
-    <form action={action} className="panel" style={{ marginTop: 16 }}>
+    <form action={action} className="panel">
       <label className="field" htmlFor="linkDomain">
         Survey link domain
       </label>

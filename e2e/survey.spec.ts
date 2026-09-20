@@ -35,6 +35,8 @@ test("the operator can make a study and a link to try it", async ({ page }) => {
     await page.waitForURL(new RegExp(`/console/studies/${STUDY}$`));
   }
 
+  // Publishing and the rehearsal link live on the whole-file screen.
+  await page.goto(`/console/studies/${STUDY}/file`);
   const publish = page.getByRole("button", { name: /Publish version/ });
   await expect(publish).toBeVisible();
   if (await publish.isEnabled()) {
@@ -51,7 +53,7 @@ test("the operator can make a study and a link to try it", async ({ page }) => {
 
 test("a deliberately broken line is explained and blocks publishing", async ({ page }) => {
   await signIn(page);
-  await page.goto(`/console/studies/${STUDY}`);
+  await page.goto(`/console/studies/${STUDY}/file`);
 
   const box = page.getByLabel("The study file");
   const original = await box.inputValue();

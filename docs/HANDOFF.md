@@ -73,6 +73,22 @@ marked records (`src/core/sample-data.ts` generates them from the study file, de
 `src/db/queries/sample-data.ts` writes and removes them), and "Remove sample data" deletes
 exactly those. It exists so every screen can be seen full before a real list is loaded.
 
+**The console redesign** (after Milestone 9). The operator console is a workspace rather than a
+phone column: a rail on the left (Home, Studies, Contacts, Settings, Activity, with a count on
+Contacts when rows need review), a wide content column, flatter surfaces, real tables, status
+pills, and stat tiles set in Newsreader. Every study screen sits under one header (name, status,
+version, counts) with tabs: Overview, Edit, Sample, Follow-ups, Results, Responses, Themes,
+Interviews, Exports. The study's first screen is now an **overview**: one line saying what to do
+next with a button, four tiles, the funnel, coverage by band, versions and status. The whole-file
+editor with publishing and the rehearsal link moved to `/console/studies/[slug]/file`; Edit
+carries a Form / Whole file / Preview switch. Responses is a review queue: the list on the left,
+the response being judged on the right, "Next flagged" to move on. Home shows what is waiting
+across every fielding study (people due an email, flagged responses, hand-raises, rows to match)
+and falls back to the setup checklist until there is a study. The styles are scoped under
+`.console` in `globals.css`; the respondent pages are untouched. Two packages came in for this:
+`lucide-react` for the rail's icons and Next's own `next/font` to self-host the two typefaces.
+At phone width the rail becomes a top bar and every two-column layout stacks.
+
 270 unit tests and 87 end-to-end tests pass, in CI as well as locally. Typecheck and build are clean.
 
 ## Not done

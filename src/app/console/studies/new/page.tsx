@@ -4,7 +4,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { parseStudy } from "@/core/study-schema";
-import { Nav } from "../../nav";
 import { readTemplate, startFromTemplate } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +46,6 @@ export default async function NewStudy({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <Nav current="/console/studies" />
       <h1>New study</h1>
       <p className="sub">
         Start from a template and edit it. Nothing is sent to anyone until you draw a sample and

@@ -10,7 +10,7 @@ const TABS = [
 
 export function ContactsNav({ current, reviewCount }: { current: string; reviewCount?: number }) {
   return (
-    <nav className="tabs" aria-label="Contacts sections" style={{ marginTop: -8 }}>
+    <nav className="subnav" aria-label="Contacts sections">
       {TABS.map((t) => (
         <Link key={t.href} href={t.href} aria-current={t.href === current ? "page" : undefined}>
           {t.label}

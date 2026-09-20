@@ -6,7 +6,6 @@ import { whyUnavailable } from "@/core/engines";
 import { studyAndVersion, studyOf } from "@/db/queries/studies";
 import { interviewsFor, turnsFor } from "@/db/queries/interview";
 import { modelAvailability } from "@/lib/model";
-import { Nav } from "../../../nav";
 
 export const dynamic = "force-dynamic";
 
@@ -30,11 +29,10 @@ export default async function Interviews({
   if (!spec) {
     return (
       <>
-        <Nav current="/console/studies" />
         <h1>Interviews</h1>
         <p className="problem">
           The study file has problems, so its stages cannot be read.{" "}
-          <Link href={`/console/studies/${slug}`}>Fix them on the study screen</Link>.
+          <Link href={`/console/studies/${slug}/file`}>Fix them in the study file</Link>.
         </p>
       </>
     );
@@ -50,10 +48,9 @@ export default async function Interviews({
 
   return (
     <>
-      <Nav current="/console/studies" />
       <h1>Interviews</h1>
       <p className="sub">
-        {study.name}. {list.length.toLocaleString("en-US")} conversations,{" "}
+        {list.length.toLocaleString("en-US")} conversations,{" "}
         {list.filter((i) => i.status === "completed").length.toLocaleString("en-US")} finished.
       </p>
 

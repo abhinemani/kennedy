@@ -6,10 +6,12 @@ import { themeCounts } from "@/core/coding";
 import { studyAndVersion } from "@/db/queries/studies";
 import { codableAnswers, codesForCounting, codingAgreement, themeList, themesFor } from "@/db/queries/coding";
 import { modelAvailability } from "@/lib/model";
-import { Nav } from "../../../nav";
 import { CodebookEditor, SuggestButtons, CodeRow } from "./forms";
 
 export const dynamic = "force-dynamic";
+
+// Uncoded answers come first, so the ones needing work are always on the page.
+const SHOWN = 200;
 
 export default async function Themes({ params }: { params: Promise<{ slug: string }> }) {
   if (!(await isSignedIn())) redirect("/console/login");
@@ -37,10 +39,9 @@ export default async function Themes({ params }: { params: Promise<{ slug: strin
 
   return (
     <>
-      <Nav current="/console/studies" />
       <h1>Themes</h1>
       <p className="sub">
-        {study.name}. {coded.toLocaleString("en-US")} of {answers.length.toLocaleString("en-US")} written
+        {coded.toLocaleString("en-US")} of {answers.length.toLocaleString("en-US")} written
         answers carry a theme{suggested ? `, ${suggested} of them still as an unconfirmed suggestion` : ""}.
       </p>
 
@@ -98,7 +99,7 @@ export default async function Themes({ params }: { params: Promise<{ slug: strin
           </p>
         </div>
       ) : (
-        answers.slice(0, 50).map((a) => (
+        answers.slice(0, SHOWN).map((a) => (
           <CodeRow
             key={a.freeTextId}
             slug={slug}
@@ -107,6 +108,12 @@ export default async function Themes({ params }: { params: Promise<{ slug: strin
           />
         ))
       )}
+
+      {answers.length > SHOWN ? (
+        <p className="note">
+          Showing the first {SHOWN.toLocaleString("en-US")} of {answers.length.toLocaleString("en-US")} written answers, uncoded ones first.
+        </p>
+      ) : null}
 
       <p className="flag">
         Written answers are stored apart from anything that identifies who wrote them.{" "}

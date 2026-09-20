@@ -38,7 +38,8 @@ Layout:
 - `src/core`, `src/db/schema.ts` — the kernel and the schema. Framework-free.
 - `src/db/queries/*` — SQL per screen. No rules live here.
 - `src/lib/*` — auth, settings, the activity log, request safety, benchmark peers.
-- `src/app/console/*` — the operator console, behind one passphrase.
+- `src/app/console/*` — the operator console, behind one passphrase. `layout.tsx` is the shell
+  with the rail; `studies/[slug]/layout.tsx` is the study header and tabs.
 - `src/app/s/[token]/*`, `src/app/u/[token]/*` — the respondent pages. Server-rendered.
 - `e2e/*` — Playwright, at 390px, on WebKit.
 
@@ -51,8 +52,10 @@ Layout:
 - Anthropic SDK for the AI follow-up. Read the model name from `ANTHROPIC_MODEL`; check the
   current Anthropic docs for a small, fast model and do not hardcode one.
 
-Keep dependencies few. No UI kit. Port the CSS tokens and components from the prototype,
-including its light and dark themes.
+Keep dependencies few. No UI kit: the console's look is the prototype's tokens and hand-written
+CSS, scoped under `.console` in `globals.css`. The two UI packages in use are `lucide-react`
+for icons and Next's own `next/font` for the typefaces; add nothing else without a reason.
+Port the CSS tokens and components from the prototype, including its light and dark themes.
 
 ## Rules that are easy to break and must not be
 

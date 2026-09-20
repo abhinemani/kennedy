@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { judgeBatch, needsReviewCount } from "@/db/queries/contacts";
-import { Nav } from "../../../nav";
 import { ContactsNav } from "../../nav";
 import { ConfirmForm } from "./confirm";
 
@@ -27,7 +26,6 @@ export default async function PreviewImport({ params }: { params: Promise<{ batc
   if (counts.total === 0) {
     return (
       <>
-        <Nav current="/console/contacts" />
         <ContactsNav current="/console/contacts/import" reviewCount={review} />
         <h1>Nothing staged</h1>
         <p className="sub">
@@ -40,7 +38,6 @@ export default async function PreviewImport({ params }: { params: Promise<{ batc
 
   return (
     <>
-      <Nav current="/console/contacts" />
       <ContactsNav current="/console/contacts/import" reviewCount={review} />
 
       <h1>Before you import</h1>

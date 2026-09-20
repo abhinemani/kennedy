@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { reviewResponse } from "./actions";
 import { FLAG_WORDS } from "./flags";
@@ -17,30 +18,47 @@ type Row = {
   exclusionReason: string | null;
 };
 
-export function ReviewRow({ slug, row }: { slug: string; row: Row }) {
+// The one response being judged. Keep, exclude with a reason, or put back.
+export function ReviewRow({ slug, row, next }: { slug: string; row: Row; next: { href: string; name: string } | null }) {
   const [message, action, working] = useActionState(reviewResponse, null);
 
   return (
-    <div className="panel" style={{ marginTop: 12 }}>
-      <b style={{ fontWeight: 500 }}>
-        {row.entityName}, {row.state}
-      </b>
-      <p className="note" style={{ margin: "2px 0 8px" }}>
-        {row.role.replace(/_/g, " ")} · {row.bandLabel}
-        {row.durationSeconds ? ` · took ${Math.round(row.durationSeconds / 60)} min` : ""}
-        {row.completedAt ? ` · ${new Date(row.completedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}
-      </p>
+    <div className="panel">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div>
+          <b style={{ fontWeight: 600, fontSize: 17 }}>
+            {row.entityName}, {row.state}
+          </b>
+          <p className="note" style={{ margin: "2px 0 0" }}>
+            {row.role.replace(/_/g, " ")} · {row.bandLabel}
+            {row.durationSeconds ? ` · took ${Math.round(row.durationSeconds / 60)} min` : ""}
+            {row.completedAt ? ` · ${new Date(row.completedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}
+          </p>
+        </div>
+        <span className={`pill ${row.reviewStatus === "excluded" ? "warn" : row.reviewStatus === "included" ? "ok" : ""}`}>
+          {row.reviewStatus === "excluded" ? "Excluded" : row.reviewStatus === "included" ? "Kept" : "Waiting"}
+        </span>
+      </div>
 
       {row.qualityFlags.length > 0 ? (
-        <ul className="problems" style={{ margin: "0 0 10px" }}>
-          {row.qualityFlags.map((flag) => (
-            <li key={flag}>{FLAG_WORDS[flag] ?? flag}</li>
-          ))}
-        </ul>
-      ) : null}
+        <>
+          <span className="label" style={{ marginTop: 16 }}>
+            What was flagged
+          </span>
+          <ul className="problems" style={{ margin: "0 0 4px" }}>
+            {row.qualityFlags.map((flag) => (
+              <li key={flag}>{FLAG_WORDS[flag] ?? flag}</li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className="note" style={{ margin: "14px 0 0" }}>
+          Nothing was flagged on this one.
+        </p>
+      )}
 
       {row.reviewStatus === "excluded" ? (
-        <p className="problem" style={{ margin: "0 0 10px" }}>
+        <p className="problem" style={{ margin: "14px 0 0" }}>
           Excluded: {row.exclusionReason ?? "no reason recorded"}
         </p>
       ) : null}
@@ -83,15 +101,22 @@ export function ReviewRow({ slug, row }: { slug: string; row: Row }) {
               Exclude
             </button>
           )}
-          <button
-            className="btn"
-            type="submit"
-            name="decision"
-            value="included"
-            disabled={working || row.reviewStatus === "included"}
-          >
-            {row.reviewStatus === "included" ? "Kept" : "Keep it"}
-          </button>
+          <span style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            {next ? (
+              <Link className="btn ghost" href={next.href}>
+                Next flagged
+              </Link>
+            ) : null}
+            <button
+              className="btn"
+              type="submit"
+              name="decision"
+              value="included"
+              disabled={working || row.reviewStatus === "included"}
+            >
+              {row.reviewStatus === "included" ? "Kept" : "Keep it"}
+            </button>
+          </span>
         </div>
       </form>
     </div>

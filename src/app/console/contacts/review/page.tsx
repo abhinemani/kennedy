@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { needsReview, needsReviewCount, searchRegistry } from "@/db/queries/contacts";
 import { normalizeState } from "@/core/resolve";
-import { Nav } from "../../nav";
 import { ContactsNav } from "../nav";
 import { ReviewRow } from "./row";
 
@@ -39,7 +38,6 @@ export default async function Review() {
 
   return (
     <>
-      <Nav current="/console/contacts" />
       <ContactsNav current="/console/contacts/review" reviewCount={total} />
 
       <h1>Needs review</h1>
