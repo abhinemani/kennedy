@@ -73,7 +73,7 @@ marked records (`src/core/sample-data.ts` generates them from the study file, de
 `src/db/queries/sample-data.ts` writes and removes them), and "Remove sample data" deletes
 exactly those. It exists so every screen can be seen full before a real list is loaded.
 
-269 unit tests and 86 end-to-end tests pass. Typecheck and build are clean.
+269 unit tests and 87 end-to-end tests pass, in CI as well as locally. Typecheck and build are clean.
 
 ## Not done
 
