@@ -8,6 +8,7 @@ import { checkLimit, clearFailures, noteFailure } from "@/lib/rate-limit";
 import { record } from "@/lib/activity";
 import { env } from "@/lib/env";
 import { DEFAULT_SETTINGS, readSettings, writeSettings } from "@/lib/settings";
+import { testModel } from "@/lib/model";
 import { hashIp } from "@/core/tokens";
 
 async function callerKey(): Promise<string> {
@@ -96,4 +97,15 @@ export async function saveSettings(_prev: string | null, form: FormData): Promis
   revalidatePath("/console");
   revalidatePath("/console/settings");
   return changed.length ? "Settings saved." : "Nothing changed.";
+}
+
+/** The checklist's "Test it": one real call, so a wrong key is found here and not mid-survey. */
+export async function testTheModel(_prev: string | null): Promise<string | null> {
+  if (!(await isSignedIn())) redirect("/console/login");
+
+  const result = await testModel();
+  await record("model_tested", { ok: result.ok });
+  return result.ok
+    ? `The model answered. The AI follow-up has something to talk to.`
+    : result.why;
 }

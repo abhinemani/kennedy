@@ -3,7 +3,7 @@ import { isSignedIn } from "@/lib/auth";
 import { readSettings } from "@/lib/settings";
 import { checklist } from "@/lib/health-facts";
 import { Nav } from "../nav";
-import { SettingsForm } from "./form";
+import { SettingsForm, TestModelButton } from "./form";
 import { endSession } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +30,7 @@ export default async function Settings() {
                 <b>{c.label}</b>{" "}
                 <span className="state">{c.state === "ok" ? "Done" : "Still to do"}</span>
                 <p>{c.detail}</p>
+                {c.id === "ai" ? <TestModelButton /> : null}
               </div>
             </li>
           ))}

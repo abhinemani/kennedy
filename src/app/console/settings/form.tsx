@@ -1,8 +1,24 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveSettings } from "../actions";
+import { saveSettings, testTheModel } from "../actions";
 import type { Settings } from "@/lib/settings";
+
+export function TestModelButton() {
+  const [message, action, working] = useActionState(testTheModel, null);
+  return (
+    <form action={action} style={{ marginTop: 10 }}>
+      <button className="btn ghost" type="submit" disabled={working}>
+        {working ? "Asking…" : "Test it"}
+      </button>
+      {message ? (
+        <p className="note" role="status">
+          {message}
+        </p>
+      ) : null}
+    </form>
+  );
+}
 
 export function SettingsForm({ current }: { current: Settings }) {
   const [message, action, pending] = useActionState(saveSettings, null);

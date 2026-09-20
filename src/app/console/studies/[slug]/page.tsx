@@ -90,6 +90,9 @@ export default async function StudyScreen({ params }: { params: Promise<{ slug: 
           <Link className="btn ghost" href={`/console/studies/${slug}/responses`}>
             Review responses
           </Link>
+          <Link className="btn ghost" href={`/console/studies/${slug}/themes`}>
+            Themes
+          </Link>
           <Link className="btn ghost" href={`/console/studies/${slug}/exports`}>
             Exports
           </Link>

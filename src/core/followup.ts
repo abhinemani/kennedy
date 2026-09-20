@@ -1,4 +1,5 @@
 // The AI follow-up. Respondent text is data: it is quoted, capped, and never obeyed.
+import { withDeadline } from "./deadline";
 export const MAX_INPUT_CHARS = 1500;
 export const MAX_WORDS = 30;
 export const TIMEOUT_MS = 4000;
@@ -28,13 +29,9 @@ export function validateFollowup(output: string): string | null {
 
 export type Generate = (m: { system: string; user: string }, signal: AbortSignal) => Promise<string>;
 
-export async function followupQuestion(questionText: string, answerText: string, fallback: string, generate: Generate) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    const out = validateFollowup(await generate(buildFollowupMessages(questionText, answerText), ctrl.signal));
-    return out ? { question: out, fallbackUsed: false } : { question: fallback, fallbackUsed: true };
-  } catch {
-    return { question: fallback, fallbackUsed: true };
-  } finally { clearTimeout(timer); }
+export async function followupQuestion(questionText: string, answerText: string, fallback: string, generate: Generate, timeoutMs = TIMEOUT_MS) {
+  const result = await withDeadline(timeoutMs, (signal) =>
+    generate(buildFollowupMessages(questionText, answerText), signal));
+  const out = result.ok ? validateFollowup(result.value) : null;
+  return out ? { question: out, fallbackUsed: false } : { question: fallback, fallbackUsed: true };
 }

@@ -167,7 +167,7 @@ export function buildChecklist(f: HealthFacts): Check[] {
           id: "ai",
           label: "AI follow-up key present",
           state: "ok",
-          detail: `A key is set and the model is ${f.anthropicModel}. The AI follow-up stays off until a study switches it on.`,
+          detail: `A key is set and the model is ${f.anthropicModel}. Press Test it to make one real call. The AI follow-up stays off until a study switches it on.`,
           fix: null,
         }
       : {

@@ -213,3 +213,28 @@ describe("provider message ids", () => {
     expect(provider.log).toHaveLength(2);
   });
 });
+
+describe("a model call's deadline", () => {
+  it("stops waiting even when the client ignores its abort signal", async () => {
+    const { followupQuestion } = await import("../src/core/followup");
+    // A client that honours the signal would reject; this one does not, which is exactly the
+    // case a respondent waiting on the page cannot be left to.
+    const stubborn = () => new Promise<string>((resolve) => setTimeout(() => resolve("Why was that?"), 500));
+
+    const started = Date.now();
+    const out = await followupQuestion("q", "a".repeat(20), "What would have helped?", stubborn, 20);
+    const waited = Date.now() - started;
+
+    expect(out.fallbackUsed).toBe(true);
+    expect(out.question).toBe("What would have helped?");
+    expect(waited).toBeLessThan(300);
+  });
+
+  it("returns the model's answer when it arrives in time", async () => {
+    const { followupQuestion } = await import("../src/core/followup");
+    const quick = async () => "What would have had to change?";
+    const out = await followupQuestion("q", "a".repeat(20), "fallback", quick, 1000);
+    expect(out.fallbackUsed).toBe(false);
+    expect(out.question).toBe("What would have had to change?");
+  });
+});

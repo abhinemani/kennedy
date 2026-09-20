@@ -42,6 +42,13 @@ export default defineConfig({
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
     {
+      // Coding written answers. Runs after results, which is where responses get reviewed.
+      name: "themes",
+      testMatch: /themes\.spec\.ts/,
+      dependencies: ["results"],
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
+    },
+    {
       // Results, review and exports. Needs responses and a send history behind it.
       name: "results",
       testMatch: /results\.spec\.ts/,
