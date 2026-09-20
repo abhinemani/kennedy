@@ -8,7 +8,8 @@ export default defineConfig({
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? "list" : "html",
+  // In CI the list goes to the log and the report is uploaded as an artifact on failure.
+  reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "html",
   use: { baseURL: "http://127.0.0.1:3100", trace: "on-first-retry" },
   projects: [
     {

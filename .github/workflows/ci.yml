@@ -44,3 +44,14 @@ jobs:
       - run: npm run migrate
       - run: npx playwright install --with-deps webkit
       - run: npm run e2e
+      # What Playwright saw when a test failed: the page as text, a screenshot, and a trace
+      # for the retry. Without these a CI-only failure can only be guessed at.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
