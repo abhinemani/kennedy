@@ -26,7 +26,7 @@ export type HealthFacts = {
   anthropicModel: string | null;
 };
 
-const VERCEL_ENV_HREF = "https://vercel.com/dashboard";
+const RAILWAY_HREF = "https://railway.com/dashboard";
 
 export function buildChecklist(f: HealthFacts): Check[] {
   const checks: Check[] = [];
@@ -46,8 +46,8 @@ export function buildChecklist(f: HealthFacts): Check[] {
           state: "todo",
           detail:
             (f.databaseError ?? "The database did not answer.") +
-            " Add the Neon Postgres integration in the Vercel dashboard under Storage, then redeploy.",
-          fix: { label: "Open the Vercel dashboard", href: VERCEL_ENV_HREF },
+            " Add a Postgres database to this project in the Railway dashboard, then redeploy.",
+          fix: { label: "Open the Railway dashboard", href: RAILWAY_HREF },
         },
   );
 
@@ -58,8 +58,8 @@ export function buildChecklist(f: HealthFacts): Check[] {
           label: "Operator passphrase set",
           state: "todo",
           detail:
-            "OPERATOR_PASSPHRASE is not set, so no one can sign in. Set it in the Vercel dashboard under Settings, Environment Variables, then redeploy.",
-          fix: { label: "Open the Vercel dashboard", href: VERCEL_ENV_HREF },
+            "OPERATOR_PASSPHRASE is not set, so no one can sign in. Set it in the Railway dashboard under Variables, then redeploy.",
+          fix: { label: "Open the Railway dashboard", href: RAILWAY_HREF },
         }
       : f.passphraseIsExample
         ? {
@@ -67,8 +67,8 @@ export function buildChecklist(f: HealthFacts): Check[] {
             label: "Operator passphrase set",
             state: "todo",
             detail:
-              "The passphrase is still the example value from the documentation. Change it in the Vercel dashboard under Settings, Environment Variables, then redeploy.",
-            fix: { label: "Open the Vercel dashboard", href: VERCEL_ENV_HREF },
+              "The passphrase is still the example value from the documentation. Change it in the Railway dashboard under Variables, then redeploy.",
+            fix: { label: "Open the Railway dashboard", href: RAILWAY_HREF },
           }
         : {
             id: "passphrase",
@@ -175,9 +175,9 @@ export function buildChecklist(f: HealthFacts): Check[] {
           label: "AI follow-up key present",
           state: "todo",
           detail: !f.anthropicKeySet
-            ? "ANTHROPIC_API_KEY is not set. The survey works without it; only the AI follow-up needs it. Set it in the Vercel dashboard under Settings, Environment Variables."
-            : "ANTHROPIC_MODEL is not set, so there is no model to ask. Set it in the Vercel dashboard under Settings, Environment Variables.",
-          fix: { label: "Open the Vercel dashboard", href: VERCEL_ENV_HREF },
+            ? "ANTHROPIC_API_KEY is not set. The survey works without it; only the AI follow-up needs it. Set it in the Railway dashboard under Variables."
+            : "ANTHROPIC_MODEL is not set, so there is no model to ask. Set it in the Railway dashboard under Variables.",
+          fix: { label: "Open the Railway dashboard", href: RAILWAY_HREF },
         },
   );
 

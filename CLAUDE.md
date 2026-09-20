@@ -27,8 +27,8 @@ change the kernel and its test first.
 
 ## Stack
 
-- Next.js (App Router) with TypeScript in strict mode, deployed on Vercel from GitHub
-- Postgres (Neon through the Vercel integration) with Drizzle ORM and checked-in migrations
+- Next.js (App Router) with TypeScript in strict mode, deployed on Railway from GitHub
+- Postgres (Railway's own Postgres service) with Drizzle ORM and checked-in migrations
 - Zod for every request body; the study schema is already in the kernel
 - Vitest for unit tests, Playwright for the respondent flow at a 390px viewport
 - Anthropic SDK for the AI follow-up. Read the model name from `ANTHROPIC_MODEL`; check the
@@ -57,8 +57,8 @@ including its light and dark themes.
    literally true today. No SOC 2, HIPAA, or similar language.
 9. Every response stores the study version it answered. Published versions are immutable.
 10. The operator never needs a terminal. Anything the operator does day to day, and anything
-    needed to set up or recover the app, happens in the browser: the Canvass console, the
-    Vercel dashboard, or GitHub's website. If a feature would require a command, it is not done.
+    needed to set up or recover the app, happens in the browser: the Kennedy console, the
+    Railway dashboard, or GitHub's website. If a feature would require a command, it is not done.
 
 11. Every way of responding opens with the study's spine of closed questions. No spine, no
     comparable numbers.
@@ -85,4 +85,4 @@ what happened and what to do next.
 ## Developer commands (for Claude Code and CI only, never the operator)
 
 `npm run dev`, `npm test`, `npm run typecheck`, `npm run e2e`. Migrations run automatically
-during the Vercel build, so there is no migrate command for a person to run.
+in Railway's pre-deploy step, so there is no migrate command for a person to run.

@@ -24,10 +24,10 @@ export async function attemptSignIn(_prev: string | null, form: FormData): Promi
   }
 
   if (!env.operatorPassphrase()) {
-    return "No passphrase is set on the server yet. Set OPERATOR_PASSPHRASE in the Vercel dashboard under Settings, Environment Variables, then redeploy.";
+    return "No passphrase is set on the server yet. Set OPERATOR_PASSPHRASE in the Railway dashboard under Variables, then redeploy.";
   }
   if (!env.sessionSecret()) {
-    return "SESSION_SECRET is not set on the server, so a sign-in cannot be remembered. Set it in the Vercel dashboard under Settings, Environment Variables, then redeploy.";
+    return "SESSION_SECRET is not set on the server, so a sign-in cannot be remembered. Set it in the Railway dashboard under Variables, then redeploy.";
   }
 
   const attempt = String(form.get("passphrase") ?? "");

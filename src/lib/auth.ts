@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { env } from "./env";
 
 // One operator, one passphrase, one signed cookie. No account table, no password reset:
-// rotating the passphrase means changing the environment variable in the Vercel dashboard
+// rotating the passphrase means changing the variable in the Railway dashboard
 // and redeploying (NO_TERMINAL.md).
 
 const COOKIE = "kennedy_session";

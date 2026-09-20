@@ -14,12 +14,12 @@ anything deferred, and stopping for review.
 ## Milestone 0: foundation and first deploy
 
 Add Next.js around the kernel without moving it. Database connection, migrations generated
-from `src/db/schema.ts` and run automatically in the Vercel build, the operator login, the
+from `src/db/schema.ts` and run automatically in Railway's pre-deploy step, the operator login, the
 setup checklist, Settings, the activity log, and the prototype's design tokens in both themes.
 
-Done when: a push to GitHub deploys to Vercel and creates the tables with no manual step; the
+Done when: a push to GitHub deploys to Railway and creates the tables with no manual step; the
 first visit shows the setup checklist with accurate states; kernel tests still pass in CI; a
-failed migration fails the build and leaves the previous deployment serving.
+failed migration fails the deployment and leaves the previous one serving.
 
 ## Milestone 1: registry, import, sample, tokens
 

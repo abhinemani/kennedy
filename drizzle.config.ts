@@ -1,7 +1,7 @@
 import type { Config } from "drizzle-kit";
 
 // Migrations are generated here by Claude Code and committed to the repo.
-// They are applied automatically during the Vercel build; the operator never runs a command.
+// They are applied by Railway's pre-deploy step; the operator never runs a command.
 export default {
   schema: "./src/db/schema.ts",
   out: "./drizzle",

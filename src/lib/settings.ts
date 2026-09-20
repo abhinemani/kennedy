@@ -4,7 +4,7 @@ import { settings } from "@/db/schema";
 import { DEFAULT_BREAKER } from "@/core/breaker";
 
 // Settings the operator edits in the console. Never secrets: those are environment
-// variables set in the Vercel dashboard.
+// variables set in the Railway dashboard.
 
 export type Settings = {
   linkDomain: string | null;

@@ -2,7 +2,8 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-// One connection per process. Neon's pooled URL is what the Vercel integration sets.
+// One connection per process. Railway's Postgres service sets DATABASE_URL for us.
+// Railway runs a long-lived Node process, so the pool is reused across requests.
 let client: ReturnType<typeof postgres> | null = null;
 
 function connection() {

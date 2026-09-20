@@ -9,15 +9,15 @@ Treat each line as a requirement.
 | Job | Where it happens |
 |---|---|
 | Put the code on GitHub | Upload the folder on github.com, or let Claude Code push it |
-| Deploy | Import the GitHub repo in the Vercel dashboard |
-| Create the database | Add the Neon Postgres integration in the Vercel dashboard; it sets `DATABASE_URL` |
-| Set secrets | Vercel dashboard, Environment Variables: `OPERATOR_PASSPHRASE`, `SESSION_SECRET`, `IP_HASH_SALT`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` |
-| Create tables | Automatic. The build step runs pending migrations before the app starts |
-| Update the app | Merge on GitHub; Vercel redeploys |
-| Roll back a bad deploy | Vercel dashboard, Deployments, "Promote" an earlier one |
+| Deploy | Create a project from the GitHub repo in the Railway dashboard |
+| Create the database | Add a Postgres database to the project in the Railway dashboard; it sets `DATABASE_URL` |
+| Set secrets | Railway dashboard, Variables: `OPERATOR_PASSPHRASE`, `SESSION_SECRET`, `IP_HASH_SALT`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` |
+| Create tables | Automatic. The pre-deploy step runs pending migrations before the new deployment takes traffic |
+| Update the app | Merge on GitHub; Railway redeploys |
+| Roll back a bad deploy | Railway dashboard, Deployments, "Redeploy" an earlier one |
 
-Migrations must be forward-only and safe to run twice. If a migration fails, the build fails
-and the previous deployment keeps serving, so a bad change never takes the site down.
+Migrations must be forward-only and safe to run twice. If a migration fails, the deployment
+fails and the previous one keeps serving, so a bad change never takes the site down.
 
 ## First run
 

@@ -1,9 +1,10 @@
-// Runs pending migrations during the Vercel build, before the app starts.
+// Runs pending migrations in Railway's pre-deploy step, before the new deployment
+// takes traffic.
 // Forward-only and safe to run twice: Drizzle records each applied migration in its
 // journal table and skips the ones already there.
 //
-// If this exits non-zero the build fails and Vercel keeps serving the previous
-// deployment, so a bad migration never takes the site down.
+// If this exits non-zero the deployment fails and Railway keeps serving the previous
+// one, so a bad migration never takes the site down.
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
@@ -16,8 +17,8 @@ if (!url) {
       "",
       "Cannot run migrations: DATABASE_URL is not set.",
       "",
-      "In the Vercel dashboard, open this project, then Storage, and add the Neon",
-      "Postgres integration. It sets DATABASE_URL for you. Then redeploy.",
+      "In the Railway dashboard, open this project and add a Postgres database.",
+      "Railway sets DATABASE_URL for you. Then redeploy.",
       "",
     ].join("\n"),
   );
@@ -30,7 +31,7 @@ try {
   await migrate(drizzle(sql), { migrationsFolder: "./drizzle" });
   console.log("Migrations are current.");
 } catch (err) {
-  console.error("\nA migration failed. The previous deployment keeps serving.\n");
+  console.error("\nA migration failed. This deployment will not go live and the previous one keeps serving.\n");
   console.error(err instanceof Error ? err.message : err);
   process.exit(1);
 } finally {

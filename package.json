@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "vercel-build": "node scripts/migrate.mjs && next build",
+    "migrate": "node scripts/migrate.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "playwright test",

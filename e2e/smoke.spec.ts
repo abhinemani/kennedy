@@ -38,3 +38,9 @@ test("nothing overflows the width of a phone", async ({ page }) => {
     expect(overflow, `${path} scrolls sideways`).toBe(false);
   }
 });
+
+test("the health endpoint answers without touching the database", async ({ request }) => {
+  const response = await request.get("/healthz");
+  expect(response.status()).toBe(200);
+  expect(await response.text()).toBe("ok");
+});

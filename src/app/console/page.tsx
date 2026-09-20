@@ -53,8 +53,8 @@ export default async function Console() {
 
       <p className="flag">
         This checklist also lives at <Link href="/console/settings">Settings</Link>, and reflects
-        this deployment right now. Changing an environment variable needs a redeploy from the
-        Vercel dashboard before it shows here.
+        this deployment right now. Changing a variable needs a redeploy from the
+        Railway dashboard before it shows here.
       </p>
     </>
   );

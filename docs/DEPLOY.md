@@ -1,33 +1,32 @@
-# Getting Kennedy live
+# Getting Kennedy live on Railway
 
 Everything here happens in a browser. There is no command to run, and nothing on this page
 needs a terminal (rule 10).
 
 Do the steps in order. The whole thing takes about fifteen minutes.
 
-## 1. Import the repository into Vercel
+## 1. Create the project
 
-1. Go to vercel.com and sign in with GitHub.
-2. Press **Add New**, then **Project**.
-3. Find this repository and press **Import**.
-4. Leave the framework as Next.js and the build settings alone. Vercel runs the
-   `vercel-build` script in `package.json`, which applies migrations and then builds.
-5. **Do not press Deploy yet.** The first deploy will fail without a database. Go to step 2,
-   then come back and deploy.
+1. Go to railway.com and open your dashboard.
+2. Press **New Project**, then **Deploy from GitHub repo**.
+3. Pick this repository. Railway starts building straight away; that first build will fail
+   because there is no database yet. That is expected. Carry on to step 2.
+
+Railway reads `railway.json` in the repository, so the build command, the start command, and
+the migration step are already set. There is nothing to configure in the build settings.
 
 ## 2. Add the database
 
-1. In the project, open the **Storage** tab.
-2. Press **Create Database**, choose **Neon** (Serverless Postgres), and accept the free plan.
-3. Connect it to this project for Production, Preview, and Development.
+1. In the project, press **Create** (or **+ New**), then **Database**, then **Add PostgreSQL**.
+2. Open the **Kennedy service**, go to **Variables**, and add a reference variable:
+   `DATABASE_URL` set to `${{Postgres.DATABASE_URL}}`.
 
-Neon sets `DATABASE_URL` for you. Nothing else about the database needs touching: the tables
-are created during the build.
+Railway's own Postgres is a real database in the same project. Nothing else about it needs
+touching: the tables are created by the pre-deploy step.
 
-## 3. Set the environment variables
+## 3. Set the variables
 
-In the project, open **Settings**, then **Environment Variables**. Add each of these for
-Production, Preview, and Development.
+In the **Kennedy service**, open **Variables** and add each of these.
 
 | Name | What to put in it |
 |---|---|
@@ -41,23 +40,23 @@ Production, Preview, and Development.
 
 ## 4. Deploy
 
-Press **Deploy**. Watch the build log. You should see `Migrations are current.` before the
-Next.js build starts.
+Press **Deploy** on the pending changes. Watch the deploy log. You should see
+`Migrations are current.` from the pre-deploy step before the app starts.
 
-If a migration fails, the build fails on purpose and the previous deployment keeps serving.
-The log names what went wrong.
+If a migration fails, the deployment fails on purpose and the previous one keeps serving. The
+log names what went wrong.
 
 ## 5. Point the domains at it
 
-In the project, open **Settings**, then **Domains**.
+In the Kennedy service, open **Settings**, then **Networking**, then **Custom Domain**.
 
 1. Add `surveys.ethoslabs.us`. This is the domain in every email, so it is the one that
    carries the sending reputation.
 2. Add `console.ethoslabs.us` if you want the console on its own host.
-3. Vercel shows the DNS record to create. Add it at your DNS provider as a **CNAME**.
+3. Railway shows a target to point at. Add it at your DNS provider as a **CNAME**.
 
-**Do not let Vercel take over the nameservers for `ethoslabs.us`.** Add the individual records
-instead. Taking over the nameservers would drop the root redirect to abhinemani.com/consulting.
+Leave the `ethoslabs.us` root alone so its redirect to abhinemani.com/consulting keeps working.
+Adding a subdomain does not disturb it.
 
 ## 6. Open the console
 
@@ -70,13 +69,24 @@ Two lines will still be amber after this, and that is expected:
 - **Postal address and reply-to** are typed into Settings whenever you have them. Nothing can
   be sent until they are there.
 
+## Back up the database
+
+Railway's Postgres does not give you point-in-time restore the way a managed Postgres host
+would. The responses in this database cannot be collected twice, so:
+
+1. In the Postgres service, open **Settings** and turn on **Backups**, at the most frequent
+   schedule offered.
+2. Once Settings, Health, "Download full backup" exists, take one before and after each
+   fielding week. That zip of CSVs is yours and does not depend on Railway.
+
 ## Later, whenever you need it
 
 | Job | Where |
 |---|---|
-| Update the app | Merge on GitHub. Vercel redeploys by itself. |
-| Roll back a bad deploy | Vercel, **Deployments**, press **Promote** on an earlier one. |
-| Change the passphrase | Vercel, **Settings**, **Environment Variables**, then **Redeploy**. |
+| Update the app | Merge on GitHub. Railway redeploys by itself. |
+| Roll back a bad deploy | Railway, **Deployments**, press the three dots on an earlier one, then **Redeploy**. |
+| Change the passphrase | Railway, **Variables**, edit it, then redeploy. |
+| Read the logs | Railway, the service's **Deployments** tab. |
 | See what the app is doing | The console's **Activity** tab. |
 
 ## Before any email goes out

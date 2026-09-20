@@ -17,8 +17,8 @@ A tested kernel plus the documents Claude Code needs to build the rest.
 
 1. Create a new private repository on github.com and upload this folder.
 2. Open the repository in Claude Code and paste the kickoff prompt.
-3. When Milestone 0 is done, import the repository in the Vercel dashboard, add the Neon
-   Postgres integration, and set the environment variables listed in `docs/NO_TERMINAL.md`.
+3. When Milestone 0 is done, create a project from the repository in the Railway dashboard,
+   add a Postgres database, and set the variables listed in `docs/DEPLOY.md`.
 4. Visit the site. The setup checklist takes it from there.
 
 Start the sending domains warming today. It takes two to three weeks and nothing here shortens it.

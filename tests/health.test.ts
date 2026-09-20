@@ -32,7 +32,7 @@ describe("setup checklist", () => {
     const c = find({ ...green, databaseReachable: false, databaseError: "Connection refused." }, "database");
     expect(c.state).toBe("todo");
     expect(c.detail).toContain("Connection refused.");
-    expect(c.detail).toContain("Neon");
+    expect(c.detail).toContain("Railway");
   });
 
   it("flags the example passphrase as not set", () => {
