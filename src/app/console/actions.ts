@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { isSignedIn, passphraseMatches, signIn, signOut } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
@@ -85,5 +86,9 @@ export async function saveSettings(_prev: string | null, form: FormData): Promis
     (k) => before[k as keyof typeof before] !== next[k as keyof typeof next],
   );
   await record("settings_saved", { changed });
+  // The checklist sits on this page and on the setup screen. Without this, a save leaves
+  // the operator looking at a line that still says the thing they just fixed is missing.
+  revalidatePath("/console");
+  revalidatePath("/console/settings");
   return changed.length ? "Settings saved." : "Nothing changed.";
 }

@@ -11,11 +11,21 @@ export default defineConfig({
   projects: [
     {
       name: "phone-light",
+      testMatch: /smoke\.spec\.ts/,
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 }, colorScheme: "light" },
     },
     {
       name: "phone-dark",
+      testMatch: /smoke\.spec\.ts/,
       use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 }, colorScheme: "dark" },
+    },
+    {
+      // The console writes to one settings row, so it runs in one project and in order.
+      name: "console",
+      testMatch: /console\.spec\.ts/,
+      fullyParallel: false,
+      workers: 1,
+      use: { ...devices["iPhone 13"], viewport: { width: 390, height: 844 } },
     },
   ],
   webServer: {

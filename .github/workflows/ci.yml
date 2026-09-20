@@ -8,6 +8,27 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: kennedy
+          POSTGRES_PASSWORD: kennedy
+          POSTGRES_DB: kennedy
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U kennedy"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://kennedy:kennedy@127.0.0.1:5432/kennedy
+      OPERATOR_PASSPHRASE: ci-only-passphrase
+      SESSION_SECRET: ci-only-session-secret
+      IP_HASH_SALT: ci-only-salt
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,5 +39,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # The same command Railway runs before a deployment goes live.
+      - run: npm run migrate
       - run: npx playwright install --with-deps webkit
       - run: npm run e2e

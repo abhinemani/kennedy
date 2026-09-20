@@ -1,6 +1,15 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "kennedy", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 }
+    {
+      "name": "kennedy",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000,
+      "autoPort": true
+    }
   ]
 }

@@ -1,0 +1,16 @@
+# Local development only. The operator never touches this: Railway runs the real database.
+# Claude Code uses it to exercise imports, the draw, and the console against a real Postgres.
+services:
+  postgres:
+    image: postgres:16
+    container_name: kennedy-pg
+    environment:
+      POSTGRES_USER: kennedy
+      POSTGRES_PASSWORD: kennedy
+      POSTGRES_DB: kennedy
+    ports:
+      - "55432:5432"
+    volumes:
+      - kennedy-pg-data:/var/lib/postgresql/data
+volumes:
+  kennedy-pg-data:
