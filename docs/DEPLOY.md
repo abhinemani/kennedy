@@ -80,6 +80,29 @@ would. The responses in this database cannot be collected twice, so:
 2. Once Settings, Health, "Download full backup" exists, take one before and after each
    fielding week. That zip of CSVs is yours and does not depend on Railway.
 
+## If a page says "That page could not load"
+
+The app and the database are separate things on Railway, and the app can be perfectly healthy
+while it cannot reach its data. The signature is exact: the public page and the console sign-in
+work, and every page that needs data fails.
+
+**Sign in and open the setup checklist.** Its first line is written for this and says which of
+the two it is, in words. Signing in does not need the database, so it works either way.
+
+Then, in the Railway dashboard:
+
+1. **Is there a Postgres database in this project at all?** Storage, or the project canvas.
+2. **Does the Kennedy service have `DATABASE_URL`?** Open the *Kennedy service*, not the
+   Postgres one, and look at Variables. It should be a reference: `${{Postgres.DATABASE_URL}}`.
+   A variable set on the database service is not visible to the app.
+3. **Did the migration step run?** Deployments, open the most recent one, and look for
+   `Migrations are current.` before the app starts. If it is not there, `railway.json`'s
+   pre-deploy command did not run, and the tables were never created.
+4. Settings, Health in the console shows which build is running, so you can tell whether a fix
+   you pushed is actually live yet.
+
+After changing a variable, **redeploy**. Railway does not restart the service on its own.
+
 ## Later, whenever you need it
 
 | Job | Where |

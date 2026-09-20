@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { isSignedIn } from "@/lib/auth";
 import { readSettings } from "@/lib/settings";
+import { buildInfo } from "@/lib/env";
 import { checklist } from "@/lib/health-facts";
 import { Nav } from "../nav";
 import { SettingsForm, TestModelButton } from "./form";
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function Settings() {
   if (!(await isSignedIn())) redirect("/console/login");
   const [current, checks] = await Promise.all([readSettings(), checklist()]);
+  const build = buildInfo();
 
   return (
     <>
@@ -21,6 +23,13 @@ export default async function Settings() {
       <SettingsForm current={current} />
 
       <h2>Health</h2>
+      <div className="panel" style={{ marginBottom: 12 }}>
+        <p className="note" style={{ margin: 0 }}>
+          {build.commit
+            ? `Running build ${build.commit}${build.deployedAt ? `, deployed ${new Date(build.deployedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}` : ""}.`
+            : "This build does not know which commit it came from, which usually means it is running outside Railway."}
+        </p>
+      </div>
       <div className="panel">
         <ul className="checks">
           {checks.map((c) => (

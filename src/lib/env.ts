@@ -11,3 +11,15 @@ export const env = {
 };
 
 export const PRODUCT_NAME = "Kennedy";
+
+/**
+ * Which build is running. Railway sets these during the build, and without them "is my fix
+ * deployed?" is only answerable by guessing.
+ */
+export function buildInfo(): { commit: string | null; deployedAt: string | null } {
+  const commit = process.env.RAILWAY_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA ?? null;
+  return {
+    commit: commit ? commit.slice(0, 7) : null,
+    deployedAt: process.env.RAILWAY_DEPLOYMENT_CREATED_AT ?? null,
+  };
+}

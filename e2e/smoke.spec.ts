@@ -44,3 +44,14 @@ test("the health endpoint answers without touching the database", async ({ reque
   expect(response.status()).toBe(200);
   expect(await response.text()).toBe("ok");
 });
+
+test("a database outage gives a respondent a sentence, not a stack of chrome", async ({ page }) => {
+  // The respondent error boundary is what stands between a broken database and the one
+  // audience whose trust actually matters. It must never show them the failure itself.
+  await page.goto("/s/AAAAAAAAAAAAAAAAAAAAAA");
+
+  const body = (await page.textContent("body")) ?? "";
+  // Either the link is simply unknown, or something broke. Neither may leak internals.
+  expect(body).toMatch(/expired or was mistyped|Something went wrong at our end/);
+  expect(body).not.toMatch(/DATABASE_URL|relation .* does not exist|at Object\.|node_modules/);
+});
