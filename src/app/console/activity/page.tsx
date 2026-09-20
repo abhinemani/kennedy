@@ -22,8 +22,13 @@ export default async function Activity() {
 
   return (
     <>
-      <h1>Activity</h1>
-      <p className="sub">What happened, and when. The newest is first.</p>
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Activity</span>
+          <h1>Activity</h1>
+          <p className="sub">What happened, and when. The newest is first.</p>
+        </div>
+      </div>
 
       <div className="panel" style={{ marginTop: 16 }}>
         {rows.length === 0 ? (

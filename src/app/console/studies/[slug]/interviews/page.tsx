@@ -48,11 +48,16 @@ export default async function Interviews({
 
   return (
     <>
-      <h1>Interviews</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Running it</span>
+          <h1>Interviews</h1>
+          <p className="sub">
         {list.length.toLocaleString("en-US")} conversations,{" "}
         {list.filter((i) => i.status === "completed").length.toLocaleString("en-US")} finished.
       </p>
+        </div>
+      </div>
 
       {engineProblem ? (
         <p className="problem">

@@ -39,7 +39,9 @@ Layout:
 - `src/db/queries/*` — SQL per screen. No rules live here.
 - `src/lib/*` — auth, settings, the activity log, request safety, benchmark peers.
 - `src/app/console/*` — the operator console, behind one passphrase. `layout.tsx` is the shell
-  with the rail; `studies/[slug]/layout.tsx` is the study header and tabs.
+  with the rail and top bar; `studies/[slug]/layout.tsx` is the study header and tabs. The
+  sponsor's screens (Brief, Findings, Leads, Report) come first; the mechanics sit under
+  "Running it".
 - `src/app/s/[token]/*`, `src/app/u/[token]/*` — the respondent pages. Server-rendered.
 - `e2e/*` — Playwright, at 390px, on WebKit.
 

@@ -134,3 +134,60 @@ export async function drawSampleNow(_prev: string | null, formData: FormData): P
     return "Could not draw the sample. Nothing was changed. Check the first line of the setup checklist.";
   }
 }
+
+/** A name made safe for a URL: lowercase, dashes, nothing else. */
+function slugify(name: string): string {
+  return name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+}
+
+/**
+ * The brief: a template, edited the way the sponsor described the study, then created.
+ * Every edit goes through the kernel's surgical helpers, so the file keeps its comments and
+ * the result is one the editor would accept.
+ */
+export async function createFromBrief(formData: FormData): Promise<void> {
+  await requireOperator();
+  const back = (problem: string) => redirect(`/console/studies/new?problem=${encodeURIComponent(problem)}`);
+
+  const dir = String(formData.get("template") ?? "");
+  if (!/^[a-z0-9-]+$/.test(dir)) back("Pick a template to start from.");
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) back("Give the study a name.");
+  const slug = slugify(name);
+  if (!slug) back("The name needs at least one letter or number.");
+
+  let text: string;
+  try {
+    text = await readTemplate(dir);
+  } catch {
+    return back("That template could not be read.");
+  }
+
+  const { setBrandField, setFeature, setFrameRoles, setTopLevel } = await import("@/core/study-edit");
+  const steps: Array<() => ReturnType<typeof setTopLevel>> = [
+    () => setTopLevel(text, "name", name),
+    () => setTopLevel(text, "slug", slug),
+    () => setTopLevel(text, "question", String(formData.get("question") ?? "")),
+    () => setBrandField(text, "sponsor_line", String(formData.get("sponsor_line") ?? "")),
+    () => setFrameRoles(text, formData.getAll("roles").map(String)),
+    () => setFeature(text, "ai_followup", formData.get("ai_followup") === "on"),
+    () => setFeature(text, "panel", formData.get("panel") === "on"),
+  ];
+  // The interview can be turned off; turning it on needs the template's guide to exist.
+  const wantInterview = formData.get("ai_interview") === "on";
+  const parsedTemplate = parseStudy(text);
+  if (parsedTemplate.ok && parsedTemplate.study.features.ai_interview !== wantInterview) {
+    steps.push(() => setFeature(text, "ai_interview", wantInterview));
+  }
+  for (const step of steps) {
+    const result = step();
+    if (!result.ok) return back(result.problem);
+    text = result.text;
+  }
+
+  const created = await createStudy(text);
+  if ("problem" in created) return back(created.problem);
+  await record("study_created", { slug: created.slug, from: dir, brief: true });
+  revalidatePath("/console/studies");
+  redirect(`/console/studies/${created.slug}/brief`);
+}

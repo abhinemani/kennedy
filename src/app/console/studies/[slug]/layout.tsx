@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { responseCounts, studyAndVersion } from "@/db/queries/studies";
 import { StudyTabs } from "./tabs";
 
@@ -23,14 +22,11 @@ export default async function StudyLayout({
   return (
     <>
       <header className="study-head">
-        <Link className="crumb" href="/console/studies">
-          Studies
-        </Link>
         <h1 className="title">{study.name}</h1>
         <span className={`pill ${study.status}`}>{STATUS_WORDS[study.status] ?? study.status}</span>
         <span className="meta">
-          {version ? `Version ${version.version}` : "Never published"} ·{" "}
-          {counts.complete.toLocaleString("en-US")} complete of {counts.started.toLocaleString("en-US")} started
+          {version ? `Version ${version.version}` : "Never published"} · <b>{counts.complete.toLocaleString("en-US")}</b>{" "}
+          complete of {counts.started.toLocaleString("en-US")} started
         </span>
       </header>
       <StudyTabs slug={slug} />

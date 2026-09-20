@@ -70,6 +70,8 @@ const touch = z.object({
 export const studySchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
   name: z.string().min(1),
+  /** The sponsor's question in one sentence: what the study exists to answer. */
+  question: z.string().optional(),
   wave: z.number().int().positive(),
   engine: z.enum(["native", "surveymonkey"]),
   features: z.object({ ai_followup: z.boolean(), ai_interview: z.boolean(), benchmark: z.boolean(), hand_raise: z.boolean(), panel: z.boolean() }).strict(),

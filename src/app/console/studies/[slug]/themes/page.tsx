@@ -39,11 +39,16 @@ export default async function Themes({ params }: { params: Promise<{ slug: strin
 
   return (
     <>
-      <h1>Themes</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Running it</span>
+          <h1>Themes</h1>
+          <p className="sub">
         {coded.toLocaleString("en-US")} of {answers.length.toLocaleString("en-US")} written
         answers carry a theme{suggested ? `, ${suggested} of them still as an unconfirmed suggestion` : ""}.
       </p>
+        </div>
+      </div>
 
       <p className="ok-note">
         The model proposes and you decide. A suggestion is never a code until you accept it, and

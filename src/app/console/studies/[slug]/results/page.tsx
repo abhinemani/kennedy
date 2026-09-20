@@ -50,14 +50,19 @@ export default async function Results({ params }: { params: Promise<{ slug: stri
 
   return (
     <>
-      <h1>Results</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Running it</span>
+          <h1>Results</h1>
+          <p className="sub">
         {n(a.included.length)} responses in the analysis
         {a.rows.length !== a.included.length
           ? `, ${n(a.rows.length - a.included.length)} excluded by review`
           : ""}
         .
       </p>
+        </div>
+      </div>
 
       <h2>Where the sample stands</h2>
       <div className="panel">

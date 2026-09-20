@@ -11,7 +11,7 @@ import { needsReviewCount, panelMemberRows } from "@/db/queries/contacts";
 import { recentActivity } from "@/lib/activity";
 import { readSettings } from "@/lib/settings";
 import { planTouch, whyBlocked } from "@/lib/sending";
-import { STATUS_WORDS } from "./studies/[slug]/words";
+import { StudyCard, studyCardFacts } from "./studies/card";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +74,7 @@ export default async function Console() {
     }),
   );
 
+  const studyCards = await Promise.all(running.map(studyCardFacts));
   const [review, panel, activity] = await Promise.all([
     needsReviewCount().catch(() => 0),
     panelMemberRows().catch(() => []),
@@ -86,12 +87,17 @@ export default async function Console() {
 
   return (
     <>
-      <h1>Home</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Home</span>
+          <h1>Home</h1>
+          <p className="sub">
         {running.length === 0
           ? `${n(studies.length)} ${studies.length === 1 ? "study" : "studies"}, none fielding right now.`
           : `${n(running.length)} ${running.length === 1 ? "study is" : "studies are"} in the field.`}
       </p>
+        </div>
+      </div>
 
       {!ready ? (
         <div className="next">
@@ -126,79 +132,35 @@ export default async function Console() {
         </div>
       </div>
 
-      <h2>In the field</h2>
-      {cards.length === 0 ? (
-        <div className="panel">
-          <p className="note" style={{ margin: 0 }}>
-            Nothing is fielding.{" "}
-            {studies.length === 0 ? (
-              <Link href="/console/studies/new">Start a study from a template</Link>
-            ) : (
-              <Link href="/console/studies">Open a study</Link>
-            )}
-            .
-          </p>
-        </div>
-      ) : (
-        cards.map((c) => (
-          <div className="panel" key={c.study.id}>
-            <div className="index">
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                <Link className="primary" href={`/console/studies/${c.study.slug}`} style={{ fontSize: 16 }}>
-                  {c.study.name}
-                </Link>
-                <span className={`pill ${c.study.status}`}>{STATUS_WORDS[c.study.status]}</span>
-              </div>
-            </div>
-            <ul className="rows" style={{ marginTop: 8 }}>
-              <li>
-                <span>Completed</span>
-                <span className="when">
-                  {n(c.counts.complete)} of {n(c.counts.started)} started
-                </span>
-              </li>
-              <li>
-                <span>
-                  {c.blocked ? (
-                    <>
-                      Next email is blocked <span className="state">— {c.blocked}</span>
-                    </>
-                  ) : c.nextTouch ? (
-                    <Link href={`/console/studies/${c.study.slug}/follow-ups`}>
-                      Touch {c.nextTouch.touch}, day {c.nextTouch.day}, is next
-                    </Link>
-                  ) : (
-                    "Every touch has gone out"
-                  )}
-                </span>
-                <span className="when">{c.nextTouch ? `${n(c.due)} due` : ""}</span>
-              </li>
-              <li>
-                <span>
-                  {c.flagged > 0 ? (
-                    <Link href={`/console/studies/${c.study.slug}/responses`}>Flagged responses to review</Link>
-                  ) : (
-                    "Flagged responses to review"
-                  )}
-                </span>
-                <span className={c.flagged > 0 ? "when low" : "when"}>{n(c.flagged)}</span>
-              </li>
-              <li>
-                <span>
-                  {c.raises > 0 ? (
-                    <Link href={`/console/studies/${c.study.slug}/exports`}>Hand-raises</Link>
-                  ) : (
-                    "Hand-raises"
-                  )}
-                </span>
-                <span className="when">{n(c.raises)}</span>
-              </li>
-            </ul>
+      <div className="section">
+        <div className="section-head">
+          <div>
+            <h2>In the field</h2>
+            <p>What each running study is for, and how far it has come.</p>
           </div>
-        ))
-      )}
+        </div>
+        {studyCards.length === 0 ? (
+          <div className="card">
+            <p className="note" style={{ margin: 0 }}>
+              Nothing is fielding.{" "}
+              {studies.length === 0 ? (
+                <Link href="/console/studies/new">Write the first brief</Link>
+              ) : (
+                <Link href="/console/studies">Open a study</Link>
+              )}
+              .
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 12 }}>
+            {studyCards.map((c) => (
+              <StudyCard key={c.study.id} facts={c} />
+            ))}
+          </div>
+        )}
+      </div>
 
-      <div className="two" style={{ marginTop: 30 }}>
+      <div className="two" style={{ marginTop: 32 }}>
         <div>
           <h2>Recently</h2>
           <div className="panel">

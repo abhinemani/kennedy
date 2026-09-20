@@ -478,3 +478,20 @@ export async function saveProfile(name: string, columns: Record<string, string>)
     .values({ name, columns })
     .onConflictDoUpdate({ target: mappingProfiles.name, set: { columns, updatedAt: new Date() } });
 }
+
+/** Officials who joined the panel at the end of this study's survey. */
+export async function panelJoinsFor(studyId: string) {
+  return db()
+    .select({
+      id: panelMembers.id,
+      joinedAt: panelMembers.createdAt,
+      entityName: entities.name,
+      state: entities.state,
+      role: contacts.role,
+    })
+    .from(panelMembers)
+    .innerJoin(contacts, eq(contacts.id, panelMembers.contactId))
+    .leftJoin(entities, eq(entities.id, contacts.entityId))
+    .where(eq(panelMembers.joinedViaStudyId, studyId))
+    .orderBy(desc(panelMembers.createdAt));
+}

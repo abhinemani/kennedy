@@ -19,11 +19,16 @@ export default async function Registry() {
     <>
       <ContactsNav current="/console/contacts/registry" reviewCount={review} />
 
-      <h1>Registry</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Contacts</span>
+          <h1>Registry</h1>
+          <p className="sub">
         The list of governments everything else hangs off. Contacts attach to one, so this goes in
         first.
       </p>
+        </div>
+      </div>
 
       <div className="panel" style={{ marginTop: 16 }}>
         <p className="note" style={{ margin: 0 }}>

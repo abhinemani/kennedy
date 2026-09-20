@@ -89,6 +89,24 @@ and falls back to the setup checklist until there is a study. The styles are sco
 `lucide-react` for the rail's icons and Next's own `next/font` to self-host the two typefaces.
 At phone width the rail becomes a top bar and every two-column layout stacks.
 
+**The sponsor's view** (after the console redesign). The console is now organised around the
+questions a sponsor asks, with the mechanics one group of tabs over. New study is a **brief**:
+the question, who is asking, which lists to ask, how deep to go, and what that should yield
+(reach, expected completes, margin), all written into the study file through the kernel's
+surgical edits (`setTopLevel`, `setBrandField`, `setFeature`, `setFrameRoles` in
+`src/core/study-edit.ts`; the planning rules of thumb live in `src/core/plan.ts`). A study file
+may carry a top-level `question:`; the worked example has one. Each study has five sponsor
+screens: **Overview** (how it is going, what is next), **Brief** (the question, who is asking,
+who is asked, how deep, and every survey question with its evidence line), **Findings**
+(headline numbers with margins, what people chose, themes with anonymous quotes, each with what
+it proves), **Leads** (hand-raises by type with verification, panel joins), and **Report** (a
+print-ready document with the methods note). The "Running it" group keeps Sample, Follow-ups,
+Responses, Themes, Interviews, Edit and Downloads. Home and Studies show each study as a card:
+its question, progress toward the expected answers, and its counts. `quotesFor` and
+`panelJoinsFor` are the two new queries. The visual system is heavier than the first pass:
+a top bar with breadcrumbs, cards with headers and elevation, stat tiles with eyebrow labels,
+drawn bar charts, definition lists, pull quotes, and a print stylesheet for the report.
+
 270 unit tests and 87 end-to-end tests pass, in CI as well as locally. Typecheck and build are clean.
 
 ## Not done

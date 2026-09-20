@@ -30,11 +30,16 @@ export default async function Import({
     <>
       <ContactsNav current="/console/contacts/import" reviewCount={review} />
 
-      <h1>Import contacts</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Contacts</span>
+          <h1>Import contacts</h1>
+          <p className="sub">
         Upload a file, say which column is which, then look at what would happen before anything
         is saved.
       </p>
+        </div>
+      </div>
 
       {discarded ? (
         <p className="ok-note" role="status">

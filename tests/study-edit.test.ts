@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parseStudy } from "../src/core/study-schema";
 import {
-  moveQuestion, setBandTarget, setOptionLabel, setQuestionField, setSampleField,
-  setShowIf, setSubject, setTouchField,
+  moveQuestion, setBandTarget, setBrandField, setFeature, setFrameRoles, setOptionLabel, setQuestionField,
+  setSampleField, setShowIf, setSubject, setTopLevel, setTouchField,
 } from "../src/core/study-edit";
 
 const ORIGINAL = readFileSync("templates/brandeis-records-2026/study.yaml", "utf8");
@@ -250,5 +250,59 @@ describe("edits compose", () => {
     expect(text.split("\n").filter((l) => l.trim().startsWith("#")).length).toBe(
       ORIGINAL.split("\n").filter((l) => l.trim().startsWith("#")).length,
     );
+  });
+});
+
+describe("the brief", () => {
+  it("renames the study and its slug without touching anything else", () => {
+    const text = applied(setTopLevel(applied(setTopLevel(ORIGINAL, "name", "Permitting workload, spring 2027")), "slug", "permitting-2027"));
+    const after = parsed(text);
+    expect(after.name).toBe("Permitting workload, spring 2027");
+    expect(after.slug).toBe("permitting-2027");
+    expect(text.split("\n").length).toBe(ORIGINAL.split("\n").length);
+  });
+
+  it("adds a question under the name when the template has none, and removes it again", () => {
+    const withQuestion = applied(setTopLevel(ORIGINAL, "question", "How much staff time do records requests really take?"));
+    expect(parsed(withQuestion).question).toBe("How much staff time do records requests really take?");
+    const lines = withQuestion.split("\n");
+    expect(lines[lines.findIndex((l) => l.startsWith("name:")) + 1]).toMatch(/^question:/);
+    expect(parsed(applied(setTopLevel(withQuestion, "question", ""))).question).toBeUndefined();
+  });
+
+  it("refuses a slug that is not a slug", () => {
+    const result = setTopLevel(ORIGINAL, "slug", "Not A Slug");
+    expect(result.ok).toBe(false);
+  });
+
+  it("rewrites the sponsor line as a folded block when it is long", () => {
+    const line = "Run by a company building permitting software. This survey is research, not a sales pitch, and answers stay anonymous.";
+    const after = parsed(applied(setBrandField(ORIGINAL, "sponsor_line", line)));
+    expect(after.brand.sponsor_line).toBe(line);
+    expect(after.brand.display_name).toBe("Local Government Records Study");
+  });
+
+  it("flips a feature switch and keeps its comment", () => {
+    const text = applied(setFeature(ORIGINAL, "ai_followup", false));
+    expect(parsed(text).features.ai_followup).toBe(false);
+    expect(text).toMatch(/ai_followup: false\s+# smart survey/);
+    expect(parsed(applied(setFeature(text, "ai_followup", true))).features.ai_followup).toBe(true);
+  });
+
+  it("turning the interview off removes its stage, and it cannot be turned on without one", () => {
+    const text = applied(setFeature(ORIGINAL, "ai_interview", false));
+    const after = parsed(text);
+    expect(after.features.ai_interview).toBe(false);
+    expect(after.stages.some((s) => s.type === "interview")).toBe(false);
+    expect(after.stages.map((s) => s.id)).toEqual(["survey", "call"]);
+    const back = setFeature(text, "ai_interview", true);
+    expect(back.ok).toBe(false);
+    if (!back.ok) expect(back.problem).toContain("interview guide");
+  });
+
+  it("sets who is asked, by role", () => {
+    const after = parsed(applied(setFrameRoles(ORIGINAL, ["clerk", "it", "clerk"])));
+    expect(after.sample.frame.roles).toEqual(["clerk", "it"]);
+    expect(setFrameRoles(ORIGINAL, []).ok).toBe(false);
   });
 });

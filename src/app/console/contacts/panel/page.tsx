@@ -21,11 +21,16 @@ export default async function Panel() {
     <>
       <ContactsNav current="/console/contacts/panel" reviewCount={review} />
 
-      <h1>Panel</h1>
-      <p className="sub">
+      <div className="page-head">
+        <div>
+          <span className="eyebrow">Contacts</span>
+          <h1>Panel</h1>
+          <p className="sub">
         Officials who asked to keep hearing from us. Everyone here ticked a box at the end of a
         survey; nobody is added any other way.
       </p>
+        </div>
+      </div>
 
       <div className="panel" style={{ marginTop: 16 }}>
         {members.length === 0 ? (
