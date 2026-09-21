@@ -11,6 +11,8 @@ const green: HealthFacts = {
   replyTo: "research@example.org",
   registryEntities: 90_112,
   sendProvider: "dryrun",
+  instantlyKeySet: false,
+  instantlyWebhookSet: false,
   anthropicKeySet: true,
   anthropicModel: "claude-haiku-4-5-20251001",
 };
@@ -22,6 +24,14 @@ const find = (f: HealthFacts, id: string) => {
 };
 
 describe("setup checklist", () => {
+  it("knows what Instantly needs before it counts as chosen", () => {
+    const chosen = { ...green, sendProvider: "instantly" };
+    expect(find(chosen, "provider").state).toBe("todo");
+    expect(find(chosen, "provider").detail).toContain("INSTANTLY_API_KEY");
+    expect(find({ ...chosen, instantlyKeySet: true }, "provider").detail).toContain("Connect");
+    expect(find({ ...chosen, instantlyKeySet: true, instantlyWebhookSet: true }, "provider").state).toBe("ok");
+  });
+
   it("is all green when everything is set", () => {
     const checks = buildChecklist(green);
     expect(checks).toHaveLength(7);
@@ -89,6 +99,8 @@ describe("setup checklist", () => {
       replyTo: null,
       registryEntities: 0,
       sendProvider: null,
+      instantlyKeySet: false,
+      instantlyWebhookSet: false,
       anthropicKeySet: false,
       anthropicModel: null,
     };

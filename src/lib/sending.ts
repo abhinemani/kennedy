@@ -6,6 +6,9 @@ import {
 } from "@/core/send";
 import { readyToSend, type Study } from "@/core/study-schema";
 import { audienceRows, recentStatuses, recipients, sentToday } from "@/db/queries/sending";
+import { touchesWithoutCampaign } from "@/core/instantly";
+import { InstantlyProvider } from "./providers/instantly";
+import { env } from "./env";
 import type { Settings } from "./settings";
 
 /**
@@ -24,7 +27,12 @@ export class CsvProvider implements SendProvider {
   }
 }
 
-export function providerFor(name: string): SendProvider {
+export function providerFor(name: string, study?: Study): SendProvider {
+  if (name === "instantly") {
+    const campaigns = new Map<number, string>();
+    for (const t of study?.sequence ?? []) if (t.campaign) campaigns.set(t.touch, t.campaign);
+    return new InstantlyProvider(campaigns);
+  }
   return name === "csv" ? new CsvProvider() : new DryRunProvider();
 }
 
@@ -80,6 +88,16 @@ export async function whyBlocked(
   }
   if (!settings.linkDomain) {
     return { blocked: true, reason: "No survey link domain is saved, so links would point nowhere. Add one in Settings." };
+  }
+  if (settings.sendProvider === "instantly") {
+    if (!env.instantlyKey()) {
+      return { blocked: true, reason: "The provider is Instantly, but INSTANTLY_API_KEY is not set. Add it in the Railway dashboard under Variables." };
+    }
+    const missing = touchesWithoutCampaign(study.sequence);
+    if (missing.length) {
+      const which = missing.length === 1 ? `Touch ${missing[0]} has` : `Touches ${missing.join(", ")} have`;
+      return { blocked: true, reason: `${which} no Instantly campaign id. In the whole file, add "campaign: <id>" under that touch, using the campaign made in Instantly for it.` };
+    }
   }
 
   return { blocked: false };

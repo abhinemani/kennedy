@@ -8,6 +8,7 @@ export const env = {
   anthropicKey: () => process.env.ANTHROPIC_API_KEY ?? null,
   anthropicModel: () => process.env.ANTHROPIC_MODEL ?? null,
   sendWebhookSecret: () => process.env.SEND_WEBHOOK_SECRET ?? null,
+  instantlyKey: () => process.env.INSTANTLY_API_KEY ?? null,
 };
 
 export const PRODUCT_NAME = "Kennedy";

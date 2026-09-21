@@ -22,6 +22,8 @@ export type HealthFacts = {
   replyTo: string | null;
   registryEntities: number;
   sendProvider: string | null;
+  instantlyKeySet: boolean;
+  instantlyWebhookSet: boolean;
   anthropicKeySet: boolean;
   anthropicModel: string | null;
 };
@@ -141,7 +143,23 @@ export function buildChecklist(f: HealthFacts): Check[] {
   );
 
   checks.push(
-    f.sendProvider
+    f.sendProvider === "instantly" && !f.instantlyKeySet
+      ? {
+          id: "provider",
+          label: "Send provider chosen",
+          state: "todo",
+          detail: "Instantly is chosen, but INSTANTLY_API_KEY is not set, so nothing can be handed to it. Set it in the Railway dashboard under Variables.",
+          fix: { label: "Open the Railway dashboard", href: RAILWAY_HREF },
+        }
+      : f.sendProvider === "instantly" && !f.instantlyWebhookSet
+        ? {
+            id: "provider",
+            label: "Send provider chosen",
+            state: "todo",
+            detail: "Instantly is chosen and its key is set. Its delivery reports are not connected yet, so bounces and unsubscribes would not come back. Press Connect on Settings.",
+            fix: { label: "Settings", href: "/console/settings" },
+          }
+      : f.sendProvider
       ? {
           id: "provider",
           label: "Send provider chosen",
@@ -149,7 +167,9 @@ export function buildChecklist(f: HealthFacts): Check[] {
           detail:
             f.sendProvider === "dryrun"
               ? "Dry run: messages are logged and nothing leaves the system."
-              : `Sending through ${f.sendProvider}.`,
+              : f.sendProvider === "instantly"
+                ? "Sending through Instantly, with its delivery reports connected."
+                : `Sending through ${f.sendProvider}.`,
           fix: null,
         }
       : {

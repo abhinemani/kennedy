@@ -1,8 +1,24 @@
 "use client";
 
 import { useActionState } from "react";
-import { loadSample, removeSample, saveSettings, testTheModel } from "../actions";
+import { connectInstantly, loadSample, removeSample, saveSettings, testTheModel } from "../actions";
 import type { Settings } from "@/lib/settings";
+
+export function ConnectInstantlyButton() {
+  const [note, act, pending] = useActionState(connectInstantly, null);
+  return (
+    <form action={act} style={{ marginTop: 8 }}>
+      <button className="btn ghost small" type="submit" disabled={pending}>
+        {pending ? "Connecting…" : "Connect delivery reports"}
+      </button>
+      {note ? (
+        <p className={/^Connected/.test(note) ? "ok-note" : "problem"} role="status" style={{ marginTop: 8 }}>
+          {note}
+        </p>
+      ) : null}
+    </form>
+  );
+}
 
 export function TestModelButton() {
   const [message, action, working] = useActionState(testTheModel, null);
@@ -54,11 +70,12 @@ export function SettingsForm({ current }: { current: Settings }) {
         Send provider
       </label>
       <p className="hint field-hint" id="sendProvider-hint">
-        Dry run logs messages and sends nothing. It is the default on purpose.
+        Dry run logs messages and sends nothing. It is the default on purpose. Instantly needs its key in the Railway dashboard and a campaign id on each touch in the study file.
       </p>
       <select aria-describedby="sendProvider-hint" id="sendProvider" name="sendProvider" defaultValue={current.sendProvider}>
         <option value="dryrun">Dry run — log only, send nothing</option>
         <option value="csv">CSV — download a merge-ready file</option>
+        <option value="instantly">Instantly — send through its API from warmed inboxes</option>
       </select>
 
       <label className="field" htmlFor="perInboxDailyLimit">
