@@ -5,23 +5,28 @@ import { computeBenchmark } from "@/core/benchmark";
 import { answersFor, linkFor, responseFor } from "@/db/queries/respondent";
 import { invitedCount } from "@/db/queries/interview";
 import { peersFor } from "@/lib/benchmark-data";
-import { backFromEnd, completeSurvey } from "../actions";
+import { backFromEnd, completeSurvey, saveChoices } from "../actions";
 import { Progress } from "../render";
 import { StripPlot } from "../strip";
-import { linkScope, respondentAnswers } from "../survey";
+import { CHOICES_SAVED, linkScope, respondentAnswers } from "../survey";
 
 export const dynamic = "force-dynamic";
 
+const fmt = (v: number) => (v >= 10 ? Math.round(v).toLocaleString("en-US") : v.toFixed(1));
+
+// Two screens share this route. Before the response is recorded: every question is answered,
+// and one press records it. After: the comparison, which is what they were promised, then the
+// boxes they may tick, then the deeper ways of taking part.
 export default async function Done({
   params,
   searchParams,
 }: {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ recorded?: string; problem?: string; ticked?: string; panel?: string; quote?: string }>;
+  searchParams: Promise<{ recorded?: string; saved?: string; problem?: string; ticked?: string; panel?: string }>;
 }) {
   const { token } = await params;
-  const { recorded, problem, ticked, panel: panelBack, quote } = await searchParams;
-  // When the last screen sent them back for an email, their ticks come back with them.
+  const { recorded, saved, problem, ticked, panel: panelBack } = await searchParams;
+  // When the choices were sent back for an email, the ticks come back with them.
   const keptTicks = ticked ? ticked.split(",") : null;
 
   const link = await linkFor(token);
@@ -32,15 +37,46 @@ export default async function Done({
 
   const stored = await answersFor(response.id);
   const given = respondentAnswers(stored);
-  const scope = { ...linkScope(link.attributes), ...given };
   const study = link.study;
   const done = response.status === "complete";
 
+  if (!done) {
+    return (
+      <div className="wrap">
+        <div className="letter">
+          <Progress done={1} total={1} />
+          <p className="q">That is every question.</p>
+          <p className="hint">
+            Press the button to record your answers. Then you will see how your office compares with
+            places its size.
+          </p>
+          <form action={completeSurvey}>
+            <input type="hidden" name="token" value={token} />
+            {study.quote_permission ? (
+              <label className="check">
+                <input type="checkbox" name="quote_permission" defaultChecked={study.quote_permission.default} />
+                <span>{study.quote_permission.label}</span>
+              </label>
+            ) : null}
+            <div className="nav">
+              <button className="btn ghost" type="submit" formAction={backFromEnd}>
+                Back
+              </button>
+              <button className="btn" type="submit">
+                Record my response
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  const scope = { ...linkScope(link.attributes), ...given };
   const stratum = String(link.attributes.population_band ?? link.attributes.stratum_key ?? "all");
   const peers = study.features.benchmark && study.benchmark ? await peersFor(link.studyId, stratum, study) : null;
   const results = peers ? computeBenchmark(study, scope, peers.byMetric) : [];
   const headline = results.find((r) => r.headline)?.headline;
-  const anyPeers = Object.values(peers?.byMetric ?? {}).some((v) => v.length > 0);
 
   const invited = study.features.ai_interview
     ? await invitedCount(link.studyId, study.stages.find((s) => s.type === "interview")?.id ?? "").catch(() => 0)
@@ -50,91 +86,60 @@ export default async function Done({
   const panel = steps.find((s) => s.kind === "panel");
   const live = steps.find((s) => s.kind === "live");
   const interview = steps.find((s) => s.kind === "interview");
+  const choicesSaved = stored[CHOICES_SAVED] === true;
+  const asks = handRaises.length > 0 || panel;
 
   const chartMetric = study.benchmark?.metrics.find((m) => m.chart === "strip");
   const chartResult = chartMetric ? results.find((r) => r.id === chartMetric.id) : undefined;
   const chartPeers = chartMetric ? (peers?.byMetric[chartMetric.id] ?? []) : [];
   const peerSource = chartMetric ? peers?.source[chartMetric.id] : undefined;
+  const sentences = results.filter((r) => r.sentence).map((r) => r.sentence);
+  const unit = chartMetric?.unit ?? chartMetric?.id.replace(/_/g, " ") ?? "";
 
   return (
     <div className="wrap">
       <div className="letter">
-        <Progress done={1} total={1} />
-
-        {done ? (
-          <>
-            <p className="q">Response recorded. Thank you.</p>
-            <p className="hint">
-              Your answers are in. This page is yours to come back to from the same link.
-            </p>
-          </>
-        ) : (
-          <p className="q">{headline ?? (anyPeers ? "Here is how your answers compare." : "Thank you. Here is what you told us.")}</p>
-        )}
+        <p className="q" style={{ fontSize: 20, marginBottom: 4 }}>
+          Response recorded. Thank you.
+        </p>
+        <p className="recorded" role={recorded ? "status" : undefined}>
+          {recorded ? "Recorded just now. " : ""}This page is yours to come back to from the same link.
+        </p>
 
         {chartResult?.value != null ? (
           <>
-            {done && headline ? <p className="q" style={{ fontSize: 20 }}>{headline}</p> : null}
+            <div className="hero">
+              <span className="n">{fmt(chartResult.value)}</span>
+              <span className="u">{unit}</span>
+            </div>
+            {headline ? <p className="q" style={{ fontSize: 22, marginTop: 10 }}>{headline}</p> : null}
             <StripPlot
               value={chartResult.value}
               peers={chartPeers}
-              unitLabel="per 1,000 residents"
+              unitLabel={unit.replace(/^\S+\s+/, "")}
               caption={
                 chartPeers.length === 0
                   ? "You are among the first in your size band to answer, so there is nothing to compare against yet. We will send you the comparison when the study closes."
                   : peerSource === "seeds"
-                    ? `Each dot is a published figure for a government in your size band. ${study.benchmark?.seeds_note ?? ""}`.trim()
-                    : `Each dot is another government in your size band that answered this survey, ${chartPeers.length} so far.`
+                    ? `Each dot is a published figure for a government in your size band; the shaded band is the middle half. ${study.benchmark?.seeds_note ?? ""}`.trim()
+                    : `Each dot is another government in your size band that answered this survey, ${chartPeers.length} so far. The shaded band is the middle half.`
               }
             />
-          </>
-        ) : null}
-
-        {results
-          .filter((r) => r.sentence)
-          .map((r) => (
-            <p className="hint" key={r.id} style={{ marginTop: 12 }}>
-              {r.sentence}
-            </p>
-          ))}
-
-        {done ? (
-          <>
-            {interview && interview.kind === "interview" ? (
-              <div className="panel" style={{ marginTop: 20, background: "var(--tint)", border: 0 }}>
-                <b style={{ fontWeight: 500 }}>{interview.label}</b>
-                <p className="note" style={{ margin: "4px 0 12px" }}>
-                  A conversation with an AI interviewer working from a researcher&rsquo;s guide,
-                  picking up from what you wrote. Skip anything, stop any time.
-                </p>
-                <Link className="btn ghost" href={`/s/${token}/interview`}>
-                  Start the conversation
-                </Link>
-              </div>
+            {sentences.length > 0 ? (
+              <p className="hint" style={{ marginTop: 14 }}>
+                {sentences.join(" ")}
+              </p>
             ) : null}
-            {live ? (
-              <div className="panel" style={{ marginTop: 20, background: "var(--tint)", border: 0 }}>
-                <b style={{ fontWeight: 500 }}>{live.label}</b>
-                <p className="note" style={{ margin: "4px 0 12px" }}>
-                  If you would rather talk it through with a person, pick a time that suits you.
-                </p>
-                <a className="btn ghost" href={live.url} target="_blank" rel="noreferrer noopener">
-                  Book a time
-                </a>
-              </div>
-            ) : null}
-            <p className="flag">
-              {study.brand.sponsor_line} <Link href="/privacy">How we handle your answers</Link>
-            </p>
           </>
         ) : (
-          <form action={completeSurvey}>
-            <input type="hidden" name="token" value={token} />
+          <p className="hint" style={{ marginTop: 8 }}>
+            {headline ?? "Your answers are in. Thank you for the time."}
+          </p>
+        )}
 
-            {handRaises.length > 0 || panel ? (
-              <h2 style={{ marginTop: 28, fontSize: 17 }}>Before you go</h2>
-            ) : null}
-
+        {asks && !choicesSaved ? (
+          <form action={saveChoices} className="offer">
+            <b>Before you go</b>
             {handRaises.map((h) =>
               h.kind === "hand_raise" ? (
                 <label className="check" key={h.id}>
@@ -147,7 +152,6 @@ export default async function Done({
                 </label>
               ) : null,
             )}
-
             {panel && panel.kind === "panel" ? (
               <label className="check">
                 <input type="checkbox" name="join_panel" defaultChecked={panelBack === "1"} />
@@ -157,28 +161,13 @@ export default async function Done({
               </label>
             ) : null}
 
-            {study.quote_permission ? (
-              <label className="check">
-                <input
-                  type="checkbox"
-                  name="quote_permission"
-                  defaultChecked={quote ? quote === "1" : study.quote_permission.default}
-                />
-                <span>{study.quote_permission.label}</span>
-              </label>
-            ) : null}
-
-            {handRaises.length > 0 || panel ? (
-              <>
-                <label className="field" htmlFor="email">
-                  Work email
-                </label>
-                <p className="hint field-hint" id="email-hint">
-                  Only needed if you ticked one of the boxes above.
-                </p>
-                <input aria-describedby="email-hint" id="email" type="email" name="email" autoComplete="email" placeholder="you@yourcity.gov" />
-              </>
-            ) : null}
+            <label className="field" htmlFor="email">
+              Work email
+            </label>
+            <p className="hint field-hint" id="email-hint">
+              Only needed if you ticked a box above. It is never shared.
+            </p>
+            <input aria-describedby="email-hint" id="email" type="email" name="email" autoComplete="email" placeholder="you@yourcity.gov" />
 
             {problem === "email" ? (
               <p className="problem" role="alert">
@@ -186,22 +175,48 @@ export default async function Done({
               </p>
             ) : null}
 
+            <input type="hidden" name="token" value={token} />
             <div className="nav">
-              <button className="btn ghost" type="submit" formAction={backFromEnd}>
-                Back
-              </button>
+              <span />
               <button className="btn" type="submit">
-                Record my response
+                Save my choices
               </button>
             </div>
           </form>
-        )}
-
-        {recorded ? (
+        ) : null}
+        {saved ? (
           <p className="note" role="status">
-            Recorded just now.
+            Choices saved.
           </p>
         ) : null}
+
+        {interview && interview.kind === "interview" ? (
+          <div className="panel offer">
+            <b>{interview.label}</b>
+            <p className="note" style={{ margin: "4px 0 12px" }}>
+              A conversation with an AI interviewer working from a researcher&rsquo;s guide,
+              picking up from what you wrote. Skip anything, stop any time.
+            </p>
+            <Link className="btn ghost" href={`/s/${token}/interview`}>
+              Start the conversation
+            </Link>
+          </div>
+        ) : null}
+        {live ? (
+          <div className="panel offer">
+            <b>{live.label}</b>
+            <p className="note" style={{ margin: "4px 0 12px" }}>
+              If you would rather talk it through with a person, pick a time that suits you.
+            </p>
+            <a className="btn ghost" href={live.url} target="_blank" rel="noreferrer noopener">
+              Book a time
+            </a>
+          </div>
+        ) : null}
+
+        <p className="flag">
+          {study.brand.sponsor_line} <Link href="/privacy">How we handle your answers</Link>
+        </p>
       </div>
     </div>
   );

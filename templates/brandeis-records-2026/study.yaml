@@ -135,6 +135,7 @@ questions:
     type: number
     text: About how many public records requests did your government receive last year?
     hint: A rough count is fine.
+    unit: requests
     allow_unknown: true
     required: true
     plausible:
@@ -179,7 +180,7 @@ questions:
     max: 100
     step: 5
     unit: "%"
-    default: 30
+    allow_unknown: true
 
   - id: tool
     type: choice
@@ -280,6 +281,7 @@ benchmark:
         below: Your office handles fewer requests than most places your size.
       near_band: 0.15
       chart: strip
+      unit: requests per 1,000 residents
     - id: hours_per_year
       formula: "volume * hours"
       sentence: "At roughly {hours} staff hours each, that is about {value} hours a year."

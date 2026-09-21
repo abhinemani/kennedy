@@ -22,7 +22,6 @@ export default async function Settings() {
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Settings</span>
           <h1>Settings</h1>
           <p className="sub">Addresses, send limits, and the thresholds that pause sending.</p>
         </div>

@@ -4,7 +4,7 @@ import { CalendarDays, CheckCircle2, Flag, Send } from "lucide-react";
 import { isSignedIn } from "@/lib/auth";
 import { parseStudy, readyToSend } from "@/core/study-schema";
 import { expectedCompletes, marginAt } from "@/core/plan";
-import { responseCounts, studyAndVersion, studyOf, versionsOf } from "@/db/queries/studies";
+import { studyAndVersion, studyOf, versionsOf } from "@/db/queries/studies";
 import { reviewQueue, handRaiseRows } from "@/db/queries/analysis";
 import { pausedReason, touchesSoFar } from "@/db/queries/sending";
 import { readSettings } from "@/lib/settings";
@@ -41,9 +41,8 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
   const sendable = readyToSend(study.draftText);
   const base = `/console/studies/${slug}`;
 
-  const [versions, counts, settings, manual, raises] = await Promise.all([
+  const [versions, settings, manual, raises] = await Promise.all([
     versionsOf(study.id),
-    responseCounts(study.id).catch(() => ({ started: 0, complete: 0 })),
     readSettings(),
     pausedReason(study.id).catch(() => null),
     handRaiseRows(study.id).catch(() => []),
@@ -82,13 +81,6 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
 
   return (
     <>
-      <p className="sub" style={{ margin: "-6px 0 16px" }}>
-        {STATUS_WORDS[study.status] ?? study.status}
-        {version ? ` · published version ${version.version}` : " · never published"}
-        {` · ${n(counts.complete)} complete of ${n(counts.started)} started`}
-        {spec ? ` · ${spec.questions.length} questions on the ${spec.engine} engine` : ""}
-      </p>
-
       <div className="next">
         <span>
           <span className="k">{next.k}</span>
@@ -152,7 +144,7 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
       </div>
 
       {a ? (
-        <div className="cols" style={{ marginTop: 16 }}>
+        <div className="cols" style={{ marginTop: 40 }}>
           <div className="card">
             <div className="card-head">
               <div>
@@ -198,9 +190,6 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
                 ))}
               </tbody>
             </table>
-            <p className="card-foot">
-              A weight above one means that band answered less than its share, so each answer counts for more. The cap is {spec?.quality.weight_cap}.
-            </p>
           </div>
         </div>
       ) : (
@@ -212,7 +201,7 @@ export default async function StudyOverview({ params }: { params: Promise<{ slug
         </p>
       )}
 
-      <div className="two" style={{ marginTop: 16 }}>
+      <div className="two" style={{ marginTop: 40 }}>
         <div className="card">
           <div className="card-head">
             <div>

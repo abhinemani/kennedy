@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { checkPlausible, canContinue, visibleQuestions } from "@/core/flow";
 import { answersFor, linkFor, responseFor } from "@/db/queries/respondent";
 import { answerQuestion, goBack } from "../../actions";
-import { Progress, QuestionBody, selfSubmitting } from "../../render";
+import { Progress, QuestionBody, selfSubmitting, timeLeft } from "../../render";
 import { linkScope, questionById, respondentAnswers } from "../../survey";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +43,7 @@ export default async function QuestionScreen({
     return (
       <div className="wrap">
         <div className="letter" key={`${qid}-confirm`}>
-          <Progress done={index + 1} total={visible.length + 1} label={`${index + 1} of ${visible.length}`} />
+          <Progress done={index + 1} total={visible.length + 1} label={timeLeft(visible.length - index)} />
           <p className="q">{prompt.message}</p>
           <p className="hint">
             Either answer is fine. We ask because the number is unusual for a place this size, and
@@ -73,7 +73,7 @@ export default async function QuestionScreen({
   return (
     <div className="wrap">
       <div className="letter" key={qid}>
-        <Progress done={index + 1} total={visible.length + 1} label={`${index + 1} of ${visible.length}`} />
+        <Progress done={index + 1} total={visible.length + 1} label={timeLeft(visible.length - index)} />
 
         <form action={answerQuestion}>
           <input type="hidden" name="token" value={token} />

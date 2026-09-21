@@ -39,6 +39,19 @@ export function Rail({ reviewCount }: { reviewCount: number }) {
   );
 }
 
+/** The one action that is always available, except inside a study, where it is never the next thing. */
+export function TopActions() {
+  const path = usePathname();
+  if (/^\/console\/studies\/[^/]+/.test(path) && !path.startsWith("/console/studies/new")) return <span className="right" />;
+  return (
+    <span className="right">
+      <Link className="btn ghost small" href="/console/studies/new">
+        New study
+      </Link>
+    </span>
+  );
+}
+
 const WORDS: Record<string, string> = {
   console: "Console", studies: "Studies", contacts: "Contacts", settings: "Settings", activity: "Activity",
   new: "New study", brief: "Brief", findings: "Findings", leads: "Leads", report: "Report", edit: "Edit",

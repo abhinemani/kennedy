@@ -24,7 +24,6 @@ export default async function Activity() {
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Activity</span>
           <h1>Activity</h1>
           <p className="sub">What happened, and when. The newest is first.</p>
         </div>

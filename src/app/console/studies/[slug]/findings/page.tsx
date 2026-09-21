@@ -71,7 +71,6 @@ export default async function Findings({ params }: { params: Promise<{ slug: str
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Findings</span>
           <h1 className="ask">{spec.question ?? "What the study found"}</h1>
           <p className="lede">
             {n(included)} responses in the analysis
@@ -158,6 +157,16 @@ export default async function Findings({ params }: { params: Promise<{ slug: str
                         <span className="lab" title={o.label}>{o.label}</span>
                         <span className="track">
                           <span className={o.estimate === top ? "fill" : "fill peer"} style={{ width: `${Math.max(0, Math.min(100, o.estimate ?? 0))}%` }} />
+                          {o.estimate !== null && o.moe !== null ? (
+                            <i
+                              className="moe"
+                              aria-hidden="true"
+                              style={{
+                                left: `${Math.max(0, o.estimate - o.moe)}%`,
+                                width: `${Math.min(100, o.estimate + o.moe) - Math.max(0, o.estimate - o.moe)}%`,
+                              }}
+                            />
+                          ) : null}
                         </span>
                         <span className="val">
                           {round(o.estimate, 0)}<small>%</small>

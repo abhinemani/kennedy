@@ -23,7 +23,6 @@ export default async function Panel() {
 
       <div className="page-head">
         <div>
-          <span className="eyebrow">Contacts</span>
           <h1>Panel</h1>
           <p className="sub">
         Officials who asked to keep hearing from us. Everyone here ticked a box at the end of a

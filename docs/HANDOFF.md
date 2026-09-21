@@ -102,6 +102,28 @@ a styled file picker, and "New study" as the top bar's one action. Loading skele
 tried and taken out: the e2e specs count what is on screen the instant a page loads, and a
 skeleton in that instant made the exclusion test skip itself.
 
+**The second design pass** (2026-09-20, branch `design-b2b`), measured against the best
+B2B interfaces rather than against the prototype. The console now uses one typeface, the
+grotesk, with tabular figures; Newsreader is reserved for the respondent pages. Cards and
+tiles lost their borders and shadows: `.card`, `.panel` and `.stat` are bare, structure comes
+from spacing and hairlines, and only objects you open (a study card, the review queue, a
+list) keep an edge. Colour means something: the accent sits on the primary action, the
+selection and links; amber marks only the words that need the operator. Status pills are a
+dot and a word. The study header carries each fact once, the overview no longer repeats it,
+and the page eyebrows are gone. A study's screens sit behind a Results / Run switch
+(`tabs.tsx`), and "New study" leaves the top bar inside a study. On the respondent side the
+question screens settle rather than fade in from nothing, the label under the bar says how
+long is left instead of a count that shifts with branching, a number field shows its unit,
+the slider records nothing until it is moved (an untouched thumb used to become 30 percent)
+and offers "Not sure" through `allow_unknown`, and the benchmark is the biggest thing on its
+screen: the respondent's figure at 58px, the headline, then a taller strip with the middle
+half of peers shaded. **The end of the survey changed order.** The last question leads to a
+short record screen ("That is every question", the quote permission, Record my response);
+recording marks the response complete and shows the benchmark; the report, pilot and panel
+boxes then have their own "Save my choices" press (`saveChoices`), remembered under the
+internal `__choices_saved` key so they are asked once. A benchmark metric may carry a `unit`
+the end screen prints beside the number.
+
 **The sponsor's view** (after the console redesign). The console is now organised around the
 questions a sponsor asks, with the mechanics one group of tabs over. New study is a **brief**:
 the question, who is asking, which lists to ask, how deep to go, and what that should yield

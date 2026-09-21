@@ -70,7 +70,6 @@ export default async function Report({ params }: { params: Promise<{ slug: strin
     <>
       <div className="page-head no-print">
         <div>
-          <span className="eyebrow">Report</span>
           <h1>The report, as it stands</h1>
           <p className="lede">
             Generated from the numbers right now, so it always matches the downloads and the methods

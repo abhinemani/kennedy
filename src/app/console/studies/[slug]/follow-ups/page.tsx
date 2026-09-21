@@ -72,7 +72,6 @@ export default async function FollowUps({
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Running it</span>
           <h1>Follow-ups</h1>
           <p className="sub">
         Every email is plain text with one survey link, a postal address, and an

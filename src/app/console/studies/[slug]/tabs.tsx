@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// The screens of one study, in two groups: what a sponsor asks about, then the work of
-// running it. Edit covers the form, the whole file, and the preview, three views of one thing.
-const ASK = [
+// The screens of one study, in two modes: what a sponsor asks about, and the work of running
+// it. A switch picks the mode; the tabs of that mode follow. Edit covers the form, the whole
+// file, and the preview, three views of one thing.
+const RESULTS = [
   { path: "", label: "Overview" },
   { path: "/brief", label: "Brief" },
   { path: "/findings", label: "Findings" },
@@ -30,6 +31,9 @@ export function StudyTabs({ slug }: { slug: string }) {
   const rest = path.startsWith(base) ? path.slice(base.length) : "";
   const isCurrent = (t: Tab) =>
     t.path === "" ? rest === "" : [t.path, ...(t.also ?? [])].some((p) => rest === p || rest.startsWith(`${p}/`));
+  const running = RUN.some(isCurrent);
+  const tabs = running ? RUN : RESULTS;
+
   const tab = (t: Tab) => (
     <Link key={t.path} href={`${base}${t.path}`} aria-current={isCurrent(t) ? "page" : undefined}>
       {t.label}
@@ -38,10 +42,15 @@ export function StudyTabs({ slug }: { slug: string }) {
 
   return (
     <nav className="subnav" aria-label="Study screens">
-      {ASK.map(tab)}
-      <span className="gap" />
-      <span className="group-label">Running it</span>
-      {RUN.map(tab)}
+      <span className="seg" role="group" aria-label="Which side of the study">
+        <Link href={base} aria-current={!running ? "true" : undefined}>
+          Results
+        </Link>
+        <Link href={`${base}/sample`} aria-current={running ? "true" : undefined}>
+          Run
+        </Link>
+      </span>
+      {tabs.map(tab)}
     </nav>
   );
 }

@@ -89,7 +89,6 @@ export default async function Console() {
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Home</span>
           <h1>Home</h1>
           <p className="sub">
         {running.length === 0

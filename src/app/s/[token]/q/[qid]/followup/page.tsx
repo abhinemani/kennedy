@@ -3,7 +3,7 @@ import { visibleQuestions } from "@/core/flow";
 import { answersFor, linkFor, responseFor } from "@/db/queries/respondent";
 import { followupFor } from "@/db/queries/followup";
 import { answerFollowup, goBack } from "../../../actions";
-import { Progress } from "../../../render";
+import { Progress, timeLeft } from "../../../render";
 import { linkScope, respondentAnswers } from "../../../survey";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,7 @@ export default async function Followup({ params }: { params: Promise<{ token: st
   return (
     <div className="wrap">
       <div className="letter" key={`${qid}-followup`}>
-        <Progress done={index + 1} total={visible.length + 1} label={`${index + 1} of ${visible.length}`} />
+        <Progress done={index + 1} total={visible.length + 1} label={timeLeft(visible.length - index)} />
 
         <p className="probe">
           One follow-up, written by an AI in response to what you just told us. Skip it if you

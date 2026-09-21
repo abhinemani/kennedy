@@ -3,7 +3,7 @@ import { isSignedIn } from "@/lib/auth";
 import { PRODUCT_NAME, buildInfo } from "@/lib/env";
 import { needsReviewCount } from "@/db/queries/contacts";
 import { listStudies } from "@/db/queries/studies";
-import { Crumbs, Rail } from "./rail";
+import { Crumbs, Rail, TopActions } from "./rail";
 import { ThemeSwitch } from "./theme";
 
 // Signed in, the console is a workspace: a rail on the left, a top bar with the breadcrumb,
@@ -51,11 +51,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
       <div style={{ minWidth: 0 }}>
         <header className="topbar">
           <Crumbs names={names} />
-          <span className="right">
-            <Link className="btn ghost small" href="/console/studies/new">
-              New study
-            </Link>
-          </span>
+          <TopActions />
         </header>
         <main className="main">{children}</main>
       </div>

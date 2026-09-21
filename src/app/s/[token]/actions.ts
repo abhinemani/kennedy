@@ -17,7 +17,7 @@ import { and, eq } from "drizzle-orm";
 import { callerIpHash, sameOrigin, userAgent } from "@/lib/request";
 import { tooManyRecently } from "@/lib/token-limit";
 import {
-  confirmedImplausible, confirmedKey, isFreeText, linkScope,
+  CHOICES_SAVED, confirmedImplausible, confirmedKey, isFreeText, linkScope,
   questionById, readAnswer, respondentAnswers,
 } from "./survey";
 
@@ -208,18 +208,6 @@ export async function completeSurvey(formData: FormData): Promise<void> {
   const stored = await answersFor(response.id);
   const given = respondentAnswers(stored);
 
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const wants = (link.study.hand_raises ?? []).filter((h) => formData.get(`raise_${h.id}`) !== null);
-
-  if (wants.length > 0 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    // Carry their choices back so nothing has to be ticked twice. The email address itself
-    // is never put in a URL (spec section 13), so that one field is retyped.
-    const kept = new URLSearchParams({ problem: "email", ticked: wants.map((w) => w.id).join(",") });
-    if (formData.get("join_panel") !== null) kept.set("panel", "1");
-    if (formData.get("quote_permission") !== null) kept.set("quote", "1");
-    redirect(`/s/${token}/done?${kept.toString()}`);
-  }
-
   const durationSeconds = Math.max(1, Math.round((Date.now() - response.startedAt.getTime()) / 1000));
   const flags = qualityFlags({
     durationSeconds,
@@ -231,6 +219,35 @@ export async function completeSurvey(formData: FormData): Promise<void> {
     correctedIdentity: stored.__corrected_identity === true,
   });
 
+  const quotePermission = formData.get("quote_permission") !== null;
+  await markComplete(response.id, link.studyContactId, durationSeconds, flags, quotePermission);
+  redirect(`/s/${token}/done?recorded=1`);
+}
+
+/** The boxes at the end: the report, the pilot, the panel. Saved once, after the response is in. */
+export async function saveChoices(formData: FormData): Promise<void> {
+  const token = String(formData.get("token") ?? "");
+  const link = await guard(token);
+
+  const response = await responseFor(link.studyContactId);
+  if (!response) redirect(`/s/${token}`);
+  if (response.status !== "complete") redirect(`/s/${token}/done`);
+
+  const stored = await answersFor(response.id);
+  if (stored[CHOICES_SAVED] === true) redirect(`/s/${token}/done`);
+
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const wants = (link.study.hand_raises ?? []).filter((h) => formData.get(`raise_${h.id}`) !== null);
+  const joining = link.study.features.panel && formData.get("join_panel") !== null;
+
+  if ((wants.length > 0 || joining) && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    // Carry their choices back so nothing has to be ticked twice. The email address itself
+    // is never put in a URL (spec section 13), so that one field is retyped.
+    const kept = new URLSearchParams({ problem: "email", ticked: wants.map((w) => w.id).join(",") });
+    if (joining) kept.set("panel", "1");
+    redirect(`/s/${token}/done?${kept.toString()}`);
+  }
+
   if (wants.length > 0) {
     const domain = email.split("@")[1] ?? "";
     const known = String(link.attributes.email_domain ?? "").toLowerCase();
@@ -239,13 +256,10 @@ export async function completeSurvey(formData: FormData): Promise<void> {
   }
 
   // Only the respondent's own choice creates a panel row (rule 12).
-  if (link.study.features.panel && formData.get("join_panel") !== null) {
-    await joinPanel(link.studyContactId, link.studyId);
-  }
+  if (joining) await joinPanel(link.studyContactId, link.studyId);
 
-  const quotePermission = formData.get("quote_permission") !== null;
-  await markComplete(response.id, link.studyContactId, durationSeconds, flags, quotePermission);
-  redirect(`/s/${token}/done?recorded=1`);
+  await saveAnswer(response.id, CHOICES_SAVED, true, false);
+  redirect(`/s/${token}/done?saved=1`);
 }
 
 /** Used by the console's preview to throw away a rehearsal. */

@@ -56,7 +56,6 @@ export default async function Brief({ params }: { params: Promise<{ slug: string
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Brief</span>
           <h1 className="ask">{spec.question ?? "What this study is for"}</h1>
           <p className="lede">
             {spec.question

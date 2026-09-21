@@ -52,7 +52,6 @@ export default async function Results({ params }: { params: Promise<{ slug: stri
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Running it</span>
           <h1>Results</h1>
           <p className="sub">
         {n(a.included.length)} responses in the analysis

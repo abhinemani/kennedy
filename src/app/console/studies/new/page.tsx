@@ -72,7 +72,6 @@ export default async function NewStudy({ searchParams }: { searchParams: Promise
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">New study</span>
           <h1>Write the brief</h1>
           <p className="lede">
             Three choices shape everything else: the question, who you are asking, and how deep to go.

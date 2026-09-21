@@ -58,7 +58,6 @@ export default async function Lists({
 
       <div className="page-head">
         <div>
-          <span className="eyebrow">Contacts</span>
           <h1>Lists</h1>
           <p className="sub">
         {contacts.length === 0

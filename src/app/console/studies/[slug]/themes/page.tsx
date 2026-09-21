@@ -41,7 +41,6 @@ export default async function Themes({ params }: { params: Promise<{ slug: strin
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Running it</span>
           <h1>Themes</h1>
           <p className="sub">
         {coded.toLocaleString("en-US")} of {answers.length.toLocaleString("en-US")} written
