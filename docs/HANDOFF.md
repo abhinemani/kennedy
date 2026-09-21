@@ -162,10 +162,26 @@ drawn bar charts, definition lists, pull quotes, and a print stylesheet for the 
 - **Milestone 10, the SurveyMonkey adapter.** Blocked on a decision: whether the fallback is
   wanted at all, and whether the operator's plan has custom variables, a redirect end page, and
   API access to responses.
-- **Milestone 11, the API send provider.** Blocked on which platform is chosen.
-- **"Download full backup."** The zip writer and its tests exist in `src/core/zip.ts`; what is
-  left is gathering the CSVs and wiring the button on Settings, Health. This matters more than
-  its milestone number suggests: Railway's Postgres has no point-in-time restore.
+
+**Milestone 11 is built for Instantly** (2026-09-20, branch `pilot-plumbing`). The operator
+chose a cold-outreach platform because the list is purchased with third-party consent, which
+every transactional sender's terms still refuse. `src/core/instantly.ts` is the pure part: a
+message is named `instantly:<campaign>:<email>` so a delivery report finds it without a lookup;
+each touch maps to one single-step Instantly campaign whose template is `{{subject}}` and
+`{{body}}`, named by `campaign:` on the touch in the study file; the webhook translation turns
+`email_sent` and `email_bounced` into statuses and `lead_unsubscribed` into a suppression
+rather than a complaint. `src/lib/providers/instantly.ts` does the HTTP: one lead per message
+with the rendered email as variables and `skip_if_in_campaign`, and `registerWebhook`, which
+Settings calls from "Connect delivery reports" with the shared secret as a header. The
+checklist's provider line knows the three states (no key, key but not connected, connected),
+and Follow-ups refuses with the touch named when a campaign id is missing. The Instantly
+request and webhook shapes were taken from its v2 documentation index and webhook guide; the
+lead-creation page itself could not be fetched, so the first real send should be watched.
+
+**"Download full backup" is wired** (same branch). `src/core/backup.ts` turns every table into
+a CSV and `src/core/zip.ts` zips them with a README; the route is
+`/console/settings/backup` and the button sits under Settings, Backup. It includes identity, on
+purpose: it is the copy that lives somewhere other than Railway.
 
 ## What the operator still has to decide or supply
 
@@ -175,7 +191,7 @@ drawn bar charts, definition lists, pull quotes, and a print stylesheet for the 
    copy addresses clerks and records officers. Either that list arrives, or the frame changes to
    the roles on hand.
 2. **The postal address and reply-to address.** Sending is blocked without a postal address.
-3. **Which sending platform.** Milestone 11, and the send itself.
+3. **Instantly.** Sign up, order pre-warmed inboxes, make three campaigns, turn tracking off, paste the key into Railway, press Connect on Settings, and put each campaign id on its touch in the study file. Then the send itself.
 4. **Benchmark seed values by population band.** Until they exist, early respondents are told
    they are among the first rather than shown a comparison, which is the whole incentive.
 5. **Whether the pilot date holds.** `surveys.ethoslabs.us` has never sent mail: SPF, DKIM,

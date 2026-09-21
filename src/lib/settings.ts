@@ -15,6 +15,8 @@ export type Settings = {
   contactHistoryWindowDays: number;
   bounceRate: number;
   complaintRate: number;
+  /** Instantly's id for the delivery-report webhook, once connected from Settings. */
+  instantlyWebhookId: string | null;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   contactHistoryWindowDays: 90,
   bounceRate: DEFAULT_BREAKER.bounceRate,
   complaintRate: DEFAULT_BREAKER.complaintRate,
+  instantlyWebhookId: null,
 };
 
 const KEY = "console";

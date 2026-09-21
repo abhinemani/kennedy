@@ -44,8 +44,13 @@ export async function queueTouch(_prev: string | null, form: FormData): Promise<
   const built = await buildMessages(parsed.study, touch, chosen, settings);
   if ("problem" in built) return built.problem;
 
-  const provider = providerFor(settings.sendProvider);
-  const ids = await provider.enqueue(built.messages);
+  const provider = providerFor(settings.sendProvider, parsed.study);
+  let ids: { studyContactId: string; providerMessageId: string }[];
+  try {
+    ids = await provider.enqueue(built.messages);
+  } catch (err) {
+    return err instanceof Error ? `Nothing was recorded: ${err.message}` : "The provider refused the batch, so nothing was recorded.";
+  }
   const byContact = new Map(ids.map((i) => [i.studyContactId, i.providerMessageId]));
 
   const written = await recordQueued(
@@ -67,6 +72,9 @@ export async function queueTouch(_prev: string | null, form: FormData): Promise<
   }
   if (provider instanceof CsvProvider) {
     return `${written.toLocaleString("en-US")} emails are ready to merge. Download the file below.${held}`;
+  }
+  if (provider.name === "instantly") {
+    return `${written.toLocaleString("en-US")} emails handed to Instantly. It sends them from its inboxes at the pace set there, and reports back here.${held}`;
   }
   return `${written.toLocaleString("en-US")} emails queued.${held}`;
 }

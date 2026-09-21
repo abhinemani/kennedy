@@ -80,7 +80,9 @@ export default async function FollowUps({
           ? "dry run, so nothing leaves the system"
           : settings.sendProvider === "csv"
             ? "a merge file you send yourself"
-            : settings.sendProvider}.
+            : settings.sendProvider === "instantly"
+              ? "Instantly, which sends from its own warmed inboxes and reports back here"
+              : settings.sendProvider}.
       </p>
         </div>
       </div>

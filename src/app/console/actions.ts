@@ -73,18 +73,19 @@ export async function saveSettings(_prev: string | null, form: FormData): Promis
     return "The survey link domain must start with https:// and be just the domain, with no path. For example https://surveys.ethoslabs.us";
   }
 
+  const before = await readSettings();
   const next = {
     linkDomain: domain,
     postalAddress: text("postalAddress"),
     replyTo: text("replyTo"),
     sendProvider: String(form.get("sendProvider") ?? DEFAULT_SETTINGS.sendProvider),
+    instantlyWebhookId: before.instantlyWebhookId,
     perInboxDailyLimit: number("perInboxDailyLimit", DEFAULT_SETTINGS.perInboxDailyLimit),
     contactHistoryWindowDays: number("contactHistoryWindowDays", DEFAULT_SETTINGS.contactHistoryWindowDays),
     bounceRate: number("bounceRate", DEFAULT_SETTINGS.bounceRate * 100) / 100,
     complaintRate: number("complaintRate", DEFAULT_SETTINGS.complaintRate * 100) / 100,
   };
 
-  const before = await readSettings();
   try {
     await writeSettings(next);
   } catch {
@@ -157,4 +158,27 @@ export async function removeSample(_prev: string | null): Promise<string | null>
   revalidatePath("/console");
   revalidatePath("/console/settings");
   return "Sample data removed. Only records marked as sample data were deleted.";
+}
+
+/**
+ * Ask Instantly to send its delivery reports here. One press, from Settings; the webhook
+ * carries the shared secret as a header, which is how the route tells Instantly from anyone.
+ */
+export async function connectInstantly(_prev: string | null, _form: FormData): Promise<string | null> {
+  if (!(await isSignedIn())) redirect("/console/login");
+  const current = await readSettings();
+  if (!current.linkDomain) return "Save the survey link domain first. That is the address Instantly will post to.";
+  const secret = process.env.SEND_WEBHOOK_SECRET;
+  if (!secret) return "SEND_WEBHOOK_SECRET is not set, so reports could not be told apart from anyone else's. Set it in the Railway dashboard under Variables.";
+  try {
+    const { registerWebhook } = await import("@/lib/providers/instantly");
+    const id = await registerWebhook(`${current.linkDomain}/api/webhooks/instantly`, secret);
+    await writeSettings({ ...current, instantlyWebhookId: id || "connected" });
+  } catch (err) {
+    return err instanceof Error ? err.message : "Instantly did not accept the webhook.";
+  }
+  await record("instantly_connected", {});
+  revalidatePath("/console");
+  revalidatePath("/console/settings");
+  return "Connected. Instantly will report sends, bounces and unsubscribes here.";
 }

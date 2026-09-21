@@ -33,7 +33,8 @@ In the **Kennedy service**, open **Variables** and add each of these.
 | `OPERATOR_PASSPHRASE` | The passphrase that opens the console. Pick a long one. Do not use `change-me`; the checklist refuses it. |
 | `SESSION_SECRET` | A long random string. Any password generator will do. It signs the session cookie. |
 | `IP_HASH_SALT` | A different long random string. It scrambles network addresses so they are never stored raw. |
-| `SEND_WEBHOOK_SECRET` | Only needed once something reports bounces back to Kennedy. Until it is set, the webhook refuses everything. |
+| `SEND_WEBHOOK_SECRET` | Only needed once something reports bounces back to Kennedy. Until it is set, the webhook refuses everything. Instantly's delivery reports carry it as a header, so set it before pressing Connect on Settings. |
+| `INSTANTLY_API_KEY` | Only when the send provider is Instantly. Made in Instantly under Settings, API keys. Without it, sending through Instantly is refused with a sentence saying so. |
 | `ANTHROPIC_API_KEY` | Only needed for the AI follow-up. The survey works without it; leave it out for now if you like. |
 | `ANTHROPIC_MODEL` | The model id for the follow-up. Only needed alongside the key. |
 

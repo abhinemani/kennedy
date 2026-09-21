@@ -67,6 +67,8 @@ const touch = z.object({
   subjects: z.array(z.string().min(1)).min(1),
   body: z.string().min(1),
   audience: z.enum(["all", "started_only"]).optional(),
+  /** The send provider's campaign that stands for this touch (Instantly). */
+  campaign: z.string().optional(),
 }).strict();
 
 export const studySchema = z.object({

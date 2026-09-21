@@ -31,6 +31,8 @@ export async function checklist(): Promise<Check[]> {
     replyTo: current.replyTo,
     registryEntities,
     sendProvider: current.sendProvider,
+    instantlyKeySet: env.instantlyKey() !== null,
+    instantlyWebhookSet: current.instantlyWebhookId !== null,
     anthropicKeySet: env.anthropicKey() !== null,
     anthropicModel: env.anthropicModel(),
   });

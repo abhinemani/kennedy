@@ -59,7 +59,8 @@ The same checklist lives permanently at Settings, Health.
 | Export anything | Study, Exports. Every export is a download button |
 | Change settings | Settings. Addresses, send limits, contact-history window, breaker thresholds |
 | See what happened | Settings, Activity. A plain log of operator actions and system events |
-| Back up | Settings, Health, "Download full backup" (a zip of CSVs), in addition to the database host's own backups |
+| Back up | Settings, Backup, "Download full backup" (a zip of CSVs, every table and every row), in addition to the database host's own backups |
+| Send through Instantly | In Instantly: one single-step campaign per touch whose template is `{{subject}}` and `{{body}}`, open and link tracking off, an API key. In Railway: `INSTANTLY_API_KEY` and `SEND_WEBHOOK_SECRET`. In Kennedy: Settings, send provider "Instantly", then "Connect delivery reports"; in the study file, `campaign: <id>` under each touch. Follow-ups then says "Send N through Instantly" |
 | See the product full before any real list exists | Settings, Sample data, "Load sample data". Fake governments, people, a fielding study, responses, interviews and coded answers, all marked, all removed again by "Remove sample data" |
 
 ## The study editor

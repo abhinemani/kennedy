@@ -1,4 +1,5 @@
 import { evaluateBreaker, type SendStatus } from "@/core/breaker";
+import { translateWebhook } from "@/core/instantly";
 import { applyEventByContact, applyProviderEvent, recentStatuses, setPaused } from "@/db/queries/sending";
 import { suppressEmail } from "@/db/queries/suppression";
 import { readSettings } from "@/lib/settings";
@@ -12,6 +13,7 @@ import { record } from "@/lib/activity";
 // than by a session. Without SEND_WEBHOOK_SECRET set, it refuses everything.
 // A report names the message either by the id the provider gave us, or, when the operator
 // sent a merge file themselves, by the study_contact_id and touch that file carried.
+// Instantly posts its own shape, which is read into the same terms first.
 type Incoming = {
   providerMessageId?: string;
   studyContactId?: string;
@@ -31,14 +33,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
 
   const { provider } = await params;
 
-  let payload: Incoming;
+  let payload: unknown;
   try {
-    payload = (await request.json()) as Incoming;
+    payload = await request.json();
   } catch {
     return new Response("Expected JSON.", { status: 400 });
   }
 
-  const events = payload.events ?? [payload];
+  let events: Incoming[];
+  let unsubscribed: string[] = [];
+  if (provider === "instantly") {
+    const read = translateWebhook(payload);
+    events = read.events;
+    unsubscribed = read.unsubscribed;
+  } else {
+    const own = payload as Incoming;
+    events = own.events ?? [own];
+  }
+
   const settings = await readSettings();
   let applied = 0;
   let studyId: string | null = null;
@@ -62,6 +74,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
     }
   }
 
+  // Someone who asked the provider to stop is honoured everywhere, at once.
+  for (const email of unsubscribed) await suppressEmail(email, "unsubscribed");
+
   let paused: string | null = null;
   if (studyId) {
     const breaker = evaluateBreaker(await recentStatuses(studyId), breakerConfigFrom(settings));
@@ -72,8 +87,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ pro
     }
   }
 
-  await record("webhook_received", { provider, events: events.length, applied });
-  return Response.json({ applied, paused });
+  await record("webhook_received", { provider, events: events.length, applied, unsubscribed: unsubscribed.length });
+  return Response.json({ applied, unsubscribed: unsubscribed.length, paused });
 }
 
 export function GET() {

@@ -4,7 +4,7 @@ import { readSettings } from "@/lib/settings";
 import { buildInfo } from "@/lib/env";
 import { checklist } from "@/lib/health-facts";
 import { sampleDataStatus } from "@/db/queries/sample-data";
-import { SampleDataPanel, SettingsForm, TestModelButton } from "./form";
+import { ConnectInstantlyButton, SampleDataPanel, SettingsForm, TestModelButton } from "./form";
 import { endSession } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -48,11 +48,22 @@ export default async function Settings() {
                     <span className="state">{c.state === "ok" ? "Done" : "Still to do"}</span>
                     <p>{c.detail}</p>
                     {c.id === "ai" ? <TestModelButton /> : null}
+                    {c.id === "provider" && current.sendProvider === "instantly" && !current.instantlyWebhookId ? <ConnectInstantlyButton /> : null}
                   </div>
                 </li>
               ))}
             </ul>
           </div>
+
+          <h2>Backup</h2>
+          <p className="note" style={{ margin: "0 0 10px" }}>
+            Every table as a CSV, zipped. Railway keeps no point-in-time copy of the database, so
+            download this before loading a real list, and after any day that mattered. It holds
+            contact details, so keep it where the list itself would be kept.
+          </p>
+          <a className="btn ghost" href="/console/settings/backup">
+            Download full backup
+          </a>
 
           <h2>Sample data</h2>
           <SampleDataPanel loaded={sample.loaded} counts={sample.counts} />

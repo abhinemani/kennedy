@@ -23,7 +23,9 @@ export function QueueForm({
       ? `Record ${willSend.toLocaleString("en-US")} as a dry run`
       : provider === "csv"
         ? `Make a merge file for ${willSend.toLocaleString("en-US")}`
-        : `Queue ${willSend.toLocaleString("en-US")} emails`;
+        : provider === "instantly"
+          ? `Send ${willSend.toLocaleString("en-US")} through Instantly`
+          : `Queue ${willSend.toLocaleString("en-US")} emails`;
 
   return (
     <form action={action}>
