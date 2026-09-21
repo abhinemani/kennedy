@@ -59,7 +59,8 @@ test("every screen has something on it", async ({ page }) => {
   await expect(page.getByText("Sample study (fake data)")).toBeVisible();
 
   await page.goto(`/console/studies/${STUDY}`);
-  await expect(page.locator("p.sub")).toContainText(/Fielding.*published version 1.*\d+ complete of \d+ started/);
+  // The header carries the study's facts once: state, version, and how many have answered.
+  await expect(page.locator(".study-head")).toContainText(/Fielding.*Version 1.*\d+ complete of \d+ started/);
 
   await page.goto(`/console/studies/${STUDY}/results`);
   await expect(page.getByRole("heading", { name: "Where the sample stands" })).toBeVisible();
