@@ -32,8 +32,8 @@ export default async function Followup({ params }: { params: Promise<{ token: st
 
   return (
     <div className="wrap">
-      <div className="letter">
-        <Progress done={index + 1} total={visible.length + 1} />
+      <div className="letter" key={`${qid}-followup`}>
+        <Progress done={index + 1} total={visible.length + 1} label={`${index + 1} of ${visible.length}`} />
 
         <p className="probe">
           One follow-up, written by an AI in response to what you just told us. Skip it if you

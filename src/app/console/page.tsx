@@ -190,9 +190,7 @@ export default async function Console() {
         <div>
           <h2>The panel</h2>
           <div className="panel">
-            <span className="stat-inline">
-              <b style={{ fontFamily: "var(--read)", fontSize: 32, fontWeight: 500, lineHeight: 1.05 }}>{n(panel.length)}</b>
-            </span>
+            <span className="stat-inline">{n(panel.length)}</span>
             <p className="note" style={{ margin: "6px 0 0" }}>
               officials who asked to keep hearing from us. Everyone here ticked a box at the end
               of a survey; nobody is added any other way.{" "}

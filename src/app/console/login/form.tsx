@@ -6,7 +6,7 @@ import { attemptSignIn } from "../actions";
 export function LoginForm() {
   const [problem, action, pending] = useActionState(attemptSignIn, null);
   return (
-    <form action={action} className="panel" style={{ marginTop: 16 }}>
+    <form action={action} className="panel">
       <label className="field" htmlFor="passphrase">
         Passphrase
       </label>

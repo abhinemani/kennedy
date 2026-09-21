@@ -79,7 +79,7 @@ export default async function Intro({
 
       <form action={startSurvey}>
         <input type="hidden" name="token" value={token} />
-        <div className="nav">
+        <div className="nav stack">
           <Link className="btn ghost" href={`/s/${token}/not-me`}>
             {link.study.intro.not_me_label}
           </Link>

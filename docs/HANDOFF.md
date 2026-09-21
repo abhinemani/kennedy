@@ -89,6 +89,19 @@ and falls back to the setup checklist until there is a study. The styles are sco
 `lucide-react` for the rail's icons and Next's own `next/font` to self-host the two typefaces.
 At phone width the rail becomes a top bar and every two-column layout stacks.
 
+**The design pass** (2026-09-20, branch `design-overhaul`). `src/app/globals.css` is now one
+system rather than a port: tokens for type, space, radius, elevation and motion; a focus ring
+that is the same everywhere; hover, press and entrance motion that switches off under
+`prefers-reduced-motion`; `color-scheme` so native controls follow the theme; and the
+interview's chat styles, which had never been ported. Respondent pages are the page on a
+phone (no card, no margins) and a letter on the ground from 560px up, with a "3 of 16" line
+under the progress bar, a check mark on the chosen answer, and the intro's Start button on
+its own line. The console has a three-way theme switch in the rail (system, light, dark;
+stored in the browser and applied before first paint from `src/app/layout.tsx`), a favicon,
+a styled file picker, and "New study" as the top bar's one action. Loading skeletons were
+tried and taken out: the e2e specs count what is on screen the instant a page loads, and a
+skeleton in that instant made the exclusion test skip itself.
+
 **The sponsor's view** (after the console redesign). The console is now organised around the
 questions a sponsor asks, with the mechanics one group of tabs over. New study is a **brief**:
 the question, who is asking, which lists to ask, how deep to go, and what that should yield

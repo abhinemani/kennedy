@@ -50,8 +50,8 @@ export function StudyCard({ facts }: { facts: StudyCardFacts }) {
   return (
     <div className="card study-card">
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <Link className="primary" href={base} style={{ fontWeight: 600, fontSize: 16, color: "var(--ink)", textDecoration: "none" }}>
+        <div className="head">
+          <Link className="primary" href={base}>
             {study.name}
           </Link>
           <span className={`pill ${study.status}`}>{STATUS_WORDS[study.status] ?? study.status}</span>
@@ -93,7 +93,7 @@ export function StudyCard({ facts }: { facts: StudyCardFacts }) {
         <span className="meter" aria-hidden="true">
           <i className={facts.flagged > 0 ? "warn" : undefined} style={{ width: `${f.drawn > 0 ? share : 0}%` }} />
         </span>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div className="links">
           <Link className="btn ghost small" href={`${base}/findings`}>
             Findings
           </Link>

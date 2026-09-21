@@ -5,19 +5,22 @@ import { Slider } from "./slider";
 // One question per screen, server-rendered. The only client JavaScript is the slider's
 // read-out; every screen works without it.
 
-export function Progress({ done, total }: { done: number; total: number }) {
+export function Progress({ done, total, label }: { done: number; total: number; label?: string }) {
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
   return (
-    <div
-      className="progress"
-      role="progressbar"
-      aria-valuenow={pct}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label="How far through the survey you are"
-    >
-      <i style={{ width: `${pct}%` }} />
-    </div>
+    <>
+      <div
+        className="progress"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="How far through the survey you are"
+      >
+        <i style={{ width: `${pct}%` }} />
+      </div>
+      {label ? <span className="step">{label}</span> : null}
+    </>
   );
 }
 

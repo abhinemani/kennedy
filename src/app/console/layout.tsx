@@ -4,6 +4,7 @@ import { PRODUCT_NAME, buildInfo } from "@/lib/env";
 import { needsReviewCount } from "@/db/queries/contacts";
 import { listStudies } from "@/db/queries/studies";
 import { Crumbs, Rail } from "./rail";
+import { ThemeSwitch } from "./theme";
 
 // Signed in, the console is a workspace: a rail on the left, a top bar with the breadcrumb,
 // and a wide column of content. Signed out, there is only the gate.
@@ -39,17 +40,21 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
           </span>
         </Link>
         <Rail reviewCount={reviewCount} />
-        <p className="foot">
-          {build.commit ? `Build ${build.commit}` : "Local build"}
-          {build.deployedAt ? `, ${new Date(build.deployedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}
-        </p>
+        <div className="foot">
+          <ThemeSwitch />
+          <p>
+            {build.commit ? `Build ${build.commit}` : "Local build"}
+            {build.deployedAt ? `, ${new Date(build.deployedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}` : ""}
+          </p>
+        </div>
       </aside>
       <div style={{ minWidth: 0 }}>
         <header className="topbar">
           <Crumbs names={names} />
           <span className="right">
-            <Link href="/console/studies/new">New study</Link>
-            <Link href="/console/settings">Settings</Link>
+            <Link className="btn ghost small" href="/console/studies/new">
+              New study
+            </Link>
           </span>
         </header>
         <main className="main">{children}</main>

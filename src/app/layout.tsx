@@ -13,9 +13,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${ui.variable} ${read.variable}`}>
+    <html lang="en" className={`${ui.variable} ${read.variable}`} suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        {/* The operator's theme choice, applied before the first paint so nothing flashes. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var t=localStorage.getItem("kennedy-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}',
+          }}
+        />
       </head>
       <body>{children}</body>
     </html>

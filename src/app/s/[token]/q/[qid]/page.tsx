@@ -42,8 +42,8 @@ export default async function QuestionScreen({
   if (prompt) {
     return (
       <div className="wrap">
-        <div className="letter">
-          <Progress done={index + 1} total={visible.length + 1} />
+        <div className="letter" key={`${qid}-confirm`}>
+          <Progress done={index + 1} total={visible.length + 1} label={`${index + 1} of ${visible.length}`} />
           <p className="q">{prompt.message}</p>
           <p className="hint">
             Either answer is fine. We ask because the number is unusual for a place this size, and
@@ -72,8 +72,8 @@ export default async function QuestionScreen({
 
   return (
     <div className="wrap">
-      <div className="letter">
-        <Progress done={index + 1} total={visible.length + 1} />
+      <div className="letter" key={qid}>
+        <Progress done={index + 1} total={visible.length + 1} label={`${index + 1} of ${visible.length}`} />
 
         <form action={answerQuestion}>
           <input type="hidden" name="token" value={token} />
