@@ -13,6 +13,7 @@ import { analyse, noteFor } from "@/lib/study-analysis";
 import { PrintButton } from "./print";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Report" };
 
 const n = (x: number) => x.toLocaleString("en-US");
 const round = (x: number | null, places = 1) =>

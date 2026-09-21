@@ -8,6 +8,7 @@ import { SampleDataPanel, SettingsForm, TestModelButton } from "./form";
 import { endSession } from "../actions";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Settings" };
 
 export default async function Settings() {
   if (!(await isSignedIn())) redirect("/console/login");

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { isSignedIn } from "@/lib/auth";
 import { PRODUCT_NAME, buildInfo } from "@/lib/env";
@@ -5,6 +6,11 @@ import { needsReviewCount } from "@/db/queries/contacts";
 import { listStudies } from "@/db/queries/studies";
 import { Crumbs, Rail, TopActions } from "./rail";
 import { ThemeSwitch } from "./theme";
+import { NavProgress } from "./nav-progress";
+
+export const metadata: Metadata = {
+  title: { template: `%s · ${PRODUCT_NAME}`, default: PRODUCT_NAME },
+};
 
 // Signed in, the console is a workspace: a rail on the left, a top bar with the breadcrumb,
 // and a wide column of content. Signed out, there is only the gate.
@@ -29,6 +35,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
 
   return (
     <div className="console">
+      <NavProgress />
       <aside className="rail">
         <Link className="brand" href="/console">
           <span className="mark" aria-hidden="true">

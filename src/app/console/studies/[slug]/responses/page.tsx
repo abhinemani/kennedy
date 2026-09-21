@@ -7,6 +7,7 @@ import { reviewQueue } from "@/db/queries/analysis";
 import { ReviewRow } from "./row";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Responses" };
 
 // A queue on the left, the response being judged on the right. Flagged ones come first, and
 // the first of them is open when the screen loads, so the work starts where it should.

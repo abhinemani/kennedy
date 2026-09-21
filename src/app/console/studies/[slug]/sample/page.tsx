@@ -8,6 +8,7 @@ import { drawnSummary, planSample } from "@/db/queries/sample";
 import { DrawForm } from "./form";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Sample" };
 
 // Nothing is drawn until the operator has seen the counts and every reason someone was left
 // out. This screen is the last thing between a study and real people.

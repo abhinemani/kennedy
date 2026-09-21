@@ -6,6 +6,7 @@ import { studyAndVersion } from "@/db/queries/studies";
 import { Editor } from "../editor";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Whole file" };
 
 // The whole study file at once, with the kernel's problems beside it, and publishing.
 export default async function StudyFile({ params }: { params: Promise<{ slug: string }> }) {

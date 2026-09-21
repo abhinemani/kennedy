@@ -6,6 +6,7 @@ import { studyBySlug } from "@/db/queries/studies";
 import { QuestionCard, SampleForm, TouchCard } from "./forms";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Edit" };
 
 // Version two of the editor, on top of the same file as the text view. Nothing here can
 // produce a study the Advanced view would refuse: every change is checked before it is saved.

@@ -11,6 +11,7 @@ import { codesForCounting, themeList } from "@/db/queries/coding";
 import { analyse } from "@/lib/study-analysis";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Findings" };
 
 const n = (x: number) => x.toLocaleString("en-US");
 const round = (x: number | null, places = 1) =>

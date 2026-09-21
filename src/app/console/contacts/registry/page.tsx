@@ -5,6 +5,7 @@ import { ContactsNav } from "../nav";
 import { RegistryForm } from "./form";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Registry" };
 
 export default async function Registry() {
   if (!(await isSignedIn())) redirect("/console/login");

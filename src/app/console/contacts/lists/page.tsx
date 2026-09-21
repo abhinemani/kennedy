@@ -7,6 +7,7 @@ import { readSettings } from "@/lib/settings";
 import { ContactsNav } from "../nav";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Lists" };
 
 // Power Almanac's thirteen first, always shown even when empty, then everything else.
 const BANDS = [
@@ -121,24 +122,33 @@ function Cards({
   roles: readonly { key: string; label: string }[];
   byKey: Map<string, { total: number; reachable: number; recentlyContacted: number; byBand: Record<string, number> }>;
 }) {
+  const n = (x: number) => x.toLocaleString("en-US");
   return (
-    <div className="lists">
-      {roles.map((role) => {
-        const card = byKey.get(role.key);
-        const total = card?.total ?? 0;
-        return (
-          <div className={total === 0 ? "list empty" : "list"} key={role.key}>
-            <b>{role.label}</b>
-            <span>{total === 0 ? "none yet" : `${total.toLocaleString("en-US")} contacts`}</span>
-            {total > 0 ? (
-              <span>
-                {(card?.reachable ?? 0).toLocaleString("en-US")} reachable today
-                {card?.recentlyContacted ? `, ${card.recentlyContacted.toLocaleString("en-US")} asked recently` : ""}
-              </span>
-            ) : null}
-          </div>
-        );
-      })}
-    </div>
+    <table className="lists-table">
+      <thead>
+        <tr>
+          <th style={{ textAlign: "left" }}>List</th>
+          <th>Contacts</th>
+          <th>Reachable today</th>
+          <th>Asked recently</th>
+        </tr>
+      </thead>
+      <tbody>
+        {roles.map((role) => {
+          const card = byKey.get(role.key);
+          const total = card?.total ?? 0;
+          return (
+            <tr className={total === 0 ? "list empty" : "list"} key={role.key}>
+              <td style={{ textAlign: "left" }}>
+                <b>{role.label}</b>
+              </td>
+              <td>{total === 0 ? <span style={{ color: "var(--faint)" }}>none yet</span> : `${n(total)} contacts`}</td>
+              <td>{total === 0 ? "—" : n(card?.reachable ?? 0)}</td>
+              <td>{total === 0 ? "—" : n(card?.recentlyContacted ?? 0)}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }

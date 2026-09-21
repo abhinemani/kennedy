@@ -6,6 +6,7 @@ import { studyBySlug } from "@/db/queries/studies";
 import { Preview } from "./preview";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Preview" };
 
 export default async function PreviewScreen({ params }: { params: Promise<{ slug: string }> }) {
   if (!(await isSignedIn())) redirect("/console/login");

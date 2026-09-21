@@ -7,6 +7,7 @@ import { analyse, noteFor } from "@/lib/study-analysis";
 import { handRaiseRows } from "@/db/queries/analysis";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Downloads" };
 
 export default async function Exports({ params }: { params: Promise<{ slug: string }> }) {
   if (!(await isSignedIn())) redirect("/console/login");

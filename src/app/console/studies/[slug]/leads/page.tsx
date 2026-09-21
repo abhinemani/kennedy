@@ -8,6 +8,7 @@ import { handRaiseRows } from "@/db/queries/analysis";
 import { panelJoinsFor } from "@/db/queries/contacts";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Leads" };
 
 const n = (x: number) => x.toLocaleString("en-US");
 const roleLabel = (key: string) => ROLES.find((r) => r.key === key)?.label.replace(/s$/, "") ?? key.replace(/_/g, " ");

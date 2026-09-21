@@ -3,6 +3,7 @@ import { isSignedIn } from "@/lib/auth";
 import { recentActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Activity" };
 
 const WORDS: Record<string, string> = {
   sign_in: "Signed in",

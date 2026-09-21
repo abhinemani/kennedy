@@ -10,6 +10,7 @@ import { deliveryHealth, planTouch, previewMessage, whyBlocked, type TouchPlan }
 import { QueueForm, PauseForm } from "./forms";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Follow-ups" };
 
 const REASON_WORDS: Record<Reason, string> = {
   completed: "already answered",

@@ -5,6 +5,7 @@ import { ROLES } from "@/core/lists";
 import { ContactsNav } from "../nav";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "The panel" };
 
 const roleLabel = (key: string) => ROLES.find((r) => r.key === key)?.label ?? key;
 
