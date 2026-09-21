@@ -5,6 +5,13 @@ import { Slider } from "./slider";
 // One question per screen, server-rendered. The only client JavaScript is the slider's
 // read-out; every screen works without it.
 
+/** Roughly how long the rest will take, said loosely so branching never makes it lie. */
+export function timeLeft(remaining: number): string {
+  if (remaining <= 2) return "Almost done";
+  const minutes = Math.max(1, Math.ceil((remaining * 20) / 60));
+  return minutes === 1 ? "About a minute left" : `About ${minutes} minutes left`;
+}
+
 export function Progress({ done, total, label }: { done: number; total: number; label?: string }) {
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
   return (
@@ -65,16 +72,19 @@ export function QuestionBody({ q, value }: { q: Question; value: unknown }) {
     case "number":
       return (
         <>
-          <input
-            type="number"
-            inputMode="numeric"
-            name="value"
-            min={0}
-            defaultValue={typeof value === "number" ? value : ""}
-            aria-label={q.text}
-          />
+          <div className="num">
+            <input
+              type="number"
+              inputMode="numeric"
+              name="value"
+              min={0}
+              defaultValue={typeof value === "number" ? value : ""}
+              aria-label={q.text}
+            />
+            {q.unit ? <span className="unit" aria-hidden="true">{q.unit}</span> : null}
+          </div>
           {q.allow_unknown ? (
-            <label className="check" style={{ marginTop: 14 }}>
+            <label className="check quiet">
               <input type="checkbox" name="unknown" value="1" defaultChecked={value === UNKNOWN} />
               <span>I don&rsquo;t know</span>
             </label>
@@ -84,14 +94,22 @@ export function QuestionBody({ q, value }: { q: Question; value: unknown }) {
 
     case "slider":
       return (
-        <Slider
-          min={q.min}
-          max={q.max}
-          step={q.step}
-          unit={q.unit ?? ""}
-          label={q.text}
-          initial={typeof value === "number" ? value : (q.default ?? q.min)}
-        />
+        <>
+          <Slider
+            min={q.min}
+            max={q.max}
+            step={q.step}
+            unit={q.unit ?? ""}
+            label={q.text}
+            initial={typeof value === "number" ? value : (q.default ?? null)}
+          />
+          {q.allow_unknown ? (
+            <label className="check quiet">
+              <input type="checkbox" name="unknown" value="1" defaultChecked={value === UNKNOWN} />
+              <span>Not sure</span>
+            </label>
+          ) : null}
+        </>
       );
 
     case "scale": {

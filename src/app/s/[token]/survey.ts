@@ -7,6 +7,8 @@ import type { Scope } from "@/core/expr";
 // export, or an analysis as if it were something the respondent said.
 const INTERNAL = "__";
 export const confirmedKey = (questionId: string) => `${INTERNAL}confirmed_${questionId}`;
+/** Set once the boxes at the end have been saved, so they are asked only once. */
+export const CHOICES_SAVED = `${INTERNAL}choices_saved`;
 
 export function respondentAnswers(all: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -59,7 +61,14 @@ export function readAnswer(q: Question, form: FormData): unknown {
   if (raw === null) return undefined;
   const text = String(raw);
 
-  if (q.type === "slider" || q.type === "scale") {
+  if (q.type === "slider") {
+    // An untouched slider is not an answer. Only a moved thumb, a study default, or "not sure" is.
+    if (form.get("unknown")) return UNKNOWN;
+    if (!form.get("touched") && q.default === undefined) return undefined;
+    const n = Number(text);
+    return Number.isFinite(n) ? n : undefined;
+  }
+  if (q.type === "scale") {
     const n = Number(text);
     return Number.isFinite(n) ? n : undefined;
   }

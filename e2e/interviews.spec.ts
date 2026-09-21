@@ -106,9 +106,6 @@ test("the end screen offers the conversation, with what it is said plainly", asy
 
   await walkSurvey(page, token);
 
-  // A ticked box needs a work email, and one is ticked by default in this study.
-  const email = page.locator("#email");
-  if (await email.count()) await email.fill("clerk@testcity.gov");
   await page.getByRole("button", { name: "Record my response" }).click();
   await expect(page.locator(".q").first()).toContainText("Response recorded");
 

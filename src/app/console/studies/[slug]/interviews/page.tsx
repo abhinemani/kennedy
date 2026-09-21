@@ -50,7 +50,6 @@ export default async function Interviews({
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Running it</span>
           <h1>Interviews</h1>
           <p className="sub">
         {list.length.toLocaleString("en-US")} conversations,{" "}

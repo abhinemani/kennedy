@@ -33,7 +33,7 @@ export function previousQuestion(study: Study, answers: Answers, attrs: Scope, c
 
 export function canContinue(q: Question, value: unknown): boolean {
   if (!q.required) return true;
-  if (value === UNKNOWN) return q.type === "number" && !!q.allow_unknown;
+  if (value === UNKNOWN) return (q.type === "number" || q.type === "slider") && !!q.allow_unknown;
   if (q.type === "number") return typeof value === "number" && value >= 0;
   if (q.type === "multi") return Array.isArray(value) && value.length > 0;
   return value !== undefined && value !== null && value !== "";

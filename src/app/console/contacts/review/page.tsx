@@ -42,7 +42,6 @@ export default async function Review() {
 
       <div className="page-head">
         <div>
-          <span className="eyebrow">Contacts</span>
           <h1>Needs review</h1>
           <p className="sub">
         {total === 0

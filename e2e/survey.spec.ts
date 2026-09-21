@@ -124,6 +124,10 @@ test("a person can answer the survey and is told where they stand", async ({ pag
   }
 
   await expect(page.getByRole("button", { name: "Record my response" })).toBeVisible();
+
+  // Recording comes before the comparison, so nobody sees their numbers and then leaves.
+  await page.getByRole("button", { name: "Record my response" }).click();
+  await expect(page.locator(".q").first()).toContainText("Response recorded");
   await expect(page.locator("figure svg")).toBeVisible();
 });
 
@@ -131,7 +135,7 @@ test("ticking a box without an email is refused and the ticks survive", async ({
   await page.goto(`/s/${token}/done`);
   const pilot = page.locator('input[name="raise_pilot"]');
   await pilot.check();
-  await page.getByRole("button", { name: "Record my response" }).click();
+  await page.getByRole("button", { name: "Save my choices" }).click();
 
   // Next's route announcer also carries role="alert", so match the message by class.
   await expect(page.locator(".problem")).toContainText("work email");
@@ -141,14 +145,14 @@ test("ticking a box without an email is refused and the ticks survive", async ({
 test("recording the response closes the link to a second answer", async ({ page }) => {
   await page.goto(`/s/${token}/done`);
   await page.locator("#email").fill("clerk@testcity.gov");
-  await page.getByRole("button", { name: "Record my response" }).click();
-
-  await expect(page.locator(".q").first()).toContainText("Response recorded");
+  await page.getByRole("button", { name: "Save my choices" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Choices saved" })).toBeVisible();
 
   // The same link now shows the benchmark again rather than a fresh survey.
   await page.goto(`/s/${token}`);
   await expect(page).toHaveURL(new RegExp(`/s/${token}/done`));
   await expect(page.getByRole("button", { name: "Record my response" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save my choices" })).toHaveCount(0);
 
   // And a question screen refuses to reopen.
   await page.goto(`/s/${token}/q/volume`);

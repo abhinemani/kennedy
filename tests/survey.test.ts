@@ -50,8 +50,13 @@ describe("reading what a form sent", () => {
   });
 
   it("reads a slider and a scale as numbers", () => {
-    expect(readAnswer(q("repeats"), form({ value: "45" }))).toBe(45);
+    expect(readAnswer(q("repeats"), form({ value: "45", touched: "1" }))).toBe(45);
     expect(readAnswer(q("ai_comfort"), form({ value: "3" }))).toBe(3);
+  });
+
+  it("does not turn an untouched slider into a number", () => {
+    expect(readAnswer(q("repeats"), form({ value: "0" }))).toBeUndefined();
+    expect(readAnswer(q("repeats"), form({ value: "0", unknown: "1" }))).toBe(UNKNOWN);
   });
 
   it("trims free text and treats blank as unanswered", () => {

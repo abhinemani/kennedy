@@ -55,7 +55,6 @@ export default async function Sample({ params }: { params: Promise<{ slug: strin
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Running it</span>
           <h1>Sample</h1>
           <p className="sub">
         {alreadyDrawn > 0

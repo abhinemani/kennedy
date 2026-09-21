@@ -21,7 +21,6 @@ export default async function Registry() {
 
       <div className="page-head">
         <div>
-          <span className="eyebrow">Contacts</span>
           <h1>Registry</h1>
           <p className="sub">
         The list of governments everything else hangs off. Contacts attach to one, so this goes in

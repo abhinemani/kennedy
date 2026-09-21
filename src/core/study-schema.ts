@@ -24,8 +24,8 @@ const plausible = z.object({
 export const questionSchema = z.discriminatedUnion("type", [
   z.object({ ...base, type: z.literal("choice"), options: z.array(option).min(2) }).strict(),
   z.object({ ...base, type: z.literal("multi"), options: z.array(option).min(2) }).strict(),
-  z.object({ ...base, type: z.literal("number"), allow_unknown: z.boolean().optional(), plausible: plausible.optional() }).strict(),
-  z.object({ ...base, type: z.literal("slider"), min: z.number(), max: z.number(), step: z.number().positive(), unit: z.string().optional(), default: z.number().optional() }).strict(),
+  z.object({ ...base, type: z.literal("number"), unit: z.string().optional(), allow_unknown: z.boolean().optional(), plausible: plausible.optional() }).strict(),
+  z.object({ ...base, type: z.literal("slider"), min: z.number(), max: z.number(), step: z.number().positive(), unit: z.string().optional(), default: z.number().optional(), allow_unknown: z.boolean().optional() }).strict(),
   z.object({ ...base, type: z.literal("scale"), min: z.number().int(), max: z.number().int(), min_label: z.string(), max_label: z.string() }).strict(),
   z.object({ ...base, type: z.literal("short_text") }).strict(),
   z.object({ ...base, type: z.literal("open"), followup: z.boolean().optional(), fallback: z.string().optional() }).strict(),
@@ -39,6 +39,8 @@ const metric = z.object({
   headline: z.object({ above: z.string(), near: z.string(), below: z.string() }).strict().optional(),
   near_band: z.number().positive().optional(),
   chart: z.enum(["strip"]).optional(),
+  /** What the number is, for the respondent: "requests per 1,000 residents". */
+  unit: z.string().optional(),
   sentence: z.string().optional(),
 }).strict();
 

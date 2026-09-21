@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-/** The one interactive control that needs to show a value while it moves. */
+/**
+ * The one interactive control that needs to show a value while it moves. Until the thumb is
+ * moved there is no answer: the read-out says so, and the form carries no "touched" mark, so
+ * the server records nothing rather than wherever the thumb happened to rest.
+ */
 export function Slider({
   min,
   max,
@@ -16,14 +20,14 @@ export function Slider({
   step: number;
   unit: string;
   label: string;
-  initial: number;
+  initial: number | null;
 }) {
-  const [value, setValue] = useState(initial);
+  const [value, setValue] = useState(initial ?? Math.round((min + max) / 2 / step) * step);
+  const [touched, setTouched] = useState(initial !== null);
   return (
     <>
-      <output className="big" htmlFor="slider">
-        {value}
-        {unit}
+      <output className={touched ? "big" : "big unset"} htmlFor="slider" aria-live="polite">
+        {touched ? `${value}${unit}` : "Slide to answer"}
       </output>
       <input
         id="slider"
@@ -34,8 +38,13 @@ export function Slider({
         step={step}
         value={value}
         aria-label={label}
-        onChange={(e) => setValue(Number(e.target.value))}
+        aria-valuetext={touched ? `${value}${unit}` : "not answered yet"}
+        onChange={(e) => {
+          setValue(Number(e.target.value));
+          setTouched(true);
+        }}
       />
+      {touched ? <input type="hidden" name="touched" value="1" /> : null}
     </>
   );
 }

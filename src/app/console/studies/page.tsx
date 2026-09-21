@@ -23,7 +23,6 @@ export default async function Studies() {
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Studies</span>
           <h1>Studies</h1>
           <p className="sub">Each study is one question put to one audience. The card says how far each has come.</p>
         </div>

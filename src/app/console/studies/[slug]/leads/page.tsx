@@ -41,7 +41,6 @@ export default async function Leads({ params }: { params: Promise<{ slug: string
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Leads</span>
           <h1>Who asked to hear more</h1>
           <p className="lede">
             Every person here ticked a box at the end of the survey and gave a work address. Nobody

@@ -32,7 +32,6 @@ export default async function Import({
 
       <div className="page-head">
         <div>
-          <span className="eyebrow">Contacts</span>
           <h1>Import contacts</h1>
           <p className="sub">
         Upload a file, say which column is which, then look at what would happen before anything

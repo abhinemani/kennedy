@@ -73,7 +73,6 @@ export default async function Exports({ params }: { params: Promise<{ slug: stri
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Running it</span>
           <h1>Exports</h1>
           <p className="sub">Every export is a download.</p>
         </div>
