@@ -8,6 +8,7 @@ import { studyAndVersion, studyOf } from "@/db/queries/studies";
 import { planSample } from "@/db/queries/sample";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Brief" };
 
 const n = (x: number) => x.toLocaleString("en-US");
 const roleLabel = (key: string) => ROLES.find((r) => r.key === key)?.label ?? key;

@@ -10,6 +10,7 @@ import { readTemplate, startFromTemplate } from "../actions";
 import { Brief, type TemplateChoice } from "./brief";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "New study" };
 
 const BANDS = [
   { key: "under_10k", label: "Under 10,000", max: 9999 },

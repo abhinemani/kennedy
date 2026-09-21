@@ -3,6 +3,7 @@ import { isSignedIn } from "@/lib/auth";
 import { LoginForm } from "./form";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Sign in" };
 
 export default async function Login() {
   if (await isSignedIn()) redirect("/console");

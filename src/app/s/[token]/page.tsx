@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { visibleQuestions } from "@/core/flow";
 import { linkFor, recordLoaded, responseFor } from "@/db/queries/respondent";
 import { callerIpHash, userAgent } from "@/lib/request";
 import { startSurvey } from "./actions";
@@ -60,11 +61,21 @@ export default async function Intro({
 
   const started = await responseFor(link.studyContactId);
   const scope = linkScope(link.attributes);
+  const masthead = /CHANGE_ME/.test(link.study.brand.display_name) ? null : link.study.brand.display_name;
+  // How many questions this person will see before any branching, and about how long that takes.
+  const count = visibleQuestions(link.study, {}, scope).length;
+  const minutes = Math.max(1, Math.ceil((count * 20) / 60));
 
   return (
     <Shell>
+      {masthead ? <p className="masthead">{masthead}</p> : null}
       <p className="q">{fillCopy(link.study.intro.title, scope)}</p>
       <p className="hint">{fillCopy(link.study.intro.body, scope)}</p>
+      <p className="meta-line">
+        <span>{count} questions</span>
+        <span>About {minutes} {minutes === 1 ? "minute" : "minutes"}</span>
+        <span>No account needed</span>
+      </p>
 
       {problem === "origin" ? (
         <p className="problem" role="alert">

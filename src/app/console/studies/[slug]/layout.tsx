@@ -1,7 +1,18 @@
+import type { Metadata } from "next";
+import { PRODUCT_NAME } from "@/lib/env";
 import { responseCounts, studyAndVersion } from "@/db/queries/studies";
 import { StudyTabs } from "./tabs";
 
 import { STATUS_WORDS } from "./words";
+
+/** The tab reads "Findings · Public records workload · Kennedy", so ten open tabs stay tellable apart. */
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const found = await studyAndVersion(slug).catch(() => null);
+  const name = found?.study.name ?? "Study";
+  // The console layout's template already adds the product name to a plain default.
+  return { title: { template: `%s · ${name} · ${PRODUCT_NAME}`, default: name } };
+}
 
 // Every screen of a study sits under the same header, so the operator always knows which
 // study they are in and can move between its screens without going back.

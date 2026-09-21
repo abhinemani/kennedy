@@ -5,6 +5,7 @@ import { listStudies } from "@/db/queries/studies";
 import { StudyCard, studyCardFacts } from "./card";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Studies" };
 
 export default async function Studies() {
   if (!(await isSignedIn())) redirect("/console/login");

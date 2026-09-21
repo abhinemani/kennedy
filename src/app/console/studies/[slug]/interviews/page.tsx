@@ -8,6 +8,7 @@ import { interviewsFor, turnsFor } from "@/db/queries/interview";
 import { modelAvailability } from "@/lib/model";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Interviews" };
 
 export default async function Interviews({
   params,

@@ -124,6 +124,19 @@ boxes then have their own "Save my choices" press (`saveChoices`), remembered un
 internal `__choices_saved` key so they are asked once. A benchmark metric may carry a `unit`
 the end screen prints beside the number.
 
+**The third design pass** (2026-09-20, branch `design-solid`), measured against Qualtrics and
+SurveyMonkey for how solid the product feels. Tabular figures are now used only where numbers
+sit in columns, because in this typeface they gave the comma a digit's width and "1,771" read
+as "1 , 771". Label-and-count lists (`.rows`) are bounded to 640px so a count stays near its
+label. The contacts Lists screen is a table, one row per list, empty ones muted; the rows keep
+the `.list` class the contacts spec selects on. Browser tab titles read "Findings · Public
+records workload · Kennedy" (`metadata` on every console page, `generateMetadata` in the study
+layout). A 2px bar along the top of the console (`nav-progress.tsx`) acknowledges a press until
+the next screen arrives; it listens for clicks on console links and clears on the route change,
+or after eight seconds. The report keeps a sheet around it and its bars print with their
+colour. The respondent intro shows the study's display name as a masthead, and a line with the
+question count, the minutes, and "No account needed".
+
 **The sponsor's view** (after the console redesign). The console is now organised around the
 questions a sponsor asks, with the mechanics one group of tabs over. New study is a **brief**:
 the question, who is asking, which lists to ask, how deep to go, and what that should yield

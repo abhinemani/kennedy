@@ -7,6 +7,7 @@ import { studyAndVersion, studyOf } from "@/db/queries/studies";
 import { analyse } from "@/lib/study-analysis";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Results" };
 
 const n = (x: number) => x.toLocaleString("en-US");
 const round = (x: number | null, places = 1) =>

@@ -9,6 +9,7 @@ import { modelAvailability } from "@/lib/model";
 import { CodebookEditor, SuggestButtons, CodeRow } from "./forms";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Themes" };
 
 // Uncoded answers come first, so the ones needing work are always on the page.
 const SHOWN = 200;

@@ -14,6 +14,7 @@ import { planTouch, whyBlocked } from "@/lib/sending";
 import { StudyCard, studyCardFacts } from "./studies/card";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Home" };
 
 const n = (x: number) => x.toLocaleString("en-US");
 

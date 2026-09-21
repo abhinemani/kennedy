@@ -6,6 +6,7 @@ import { ContactsNav } from "../nav";
 import { ReviewRow } from "./row";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Needs review" };
 
 // Rows that did not resolve wait here rather than being dropped or force-matched, because a
 // wrong match quietly attributes one government's answers to another.

@@ -6,6 +6,7 @@ import { ContactsNav } from "../nav";
 import { ImportForm } from "./form";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Import contacts" };
 
 export default async function Import({
   searchParams,
